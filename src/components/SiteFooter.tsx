@@ -1,10 +1,22 @@
 import Link from "next/link";
 import { categories, campaigns, legalPages } from "@/lib/catalog";
+import type { DemoSettings } from "@/lib/demo-types";
 import { siteConfig, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
-export function SiteFooter({ locale }: { locale: Locale }) {
+export function SiteFooter({
+  locale,
+  settings,
+}: {
+  locale: Locale;
+  settings?: DemoSettings;
+}) {
   const copy = t(locale);
+  const logoMark = settings?.logoMark || siteConfig.logoMark;
+  const siteName = settings?.siteName || siteConfig.name;
+  const phone = settings?.phone || siteConfig.phoneDisplay;
+  const email = settings?.email || siteConfig.email;
+  const tursab = settings?.tursabCertificate || siteConfig.tursabCertificate;
 
   return (
     <footer className="border-t border-black/10 bg-white">
@@ -12,11 +24,11 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         <div>
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center bg-[var(--color-ink)] text-sm font-black text-white">
-              {siteConfig.logoMark}
+              {logoMark}
             </span>
             <div>
               <p className="font-black text-[var(--color-ink)]">
-                {siteConfig.name}
+                {siteName}
               </p>
               <p className="text-sm text-[var(--color-muted)]">
                 {siteConfig.tagline}
@@ -27,9 +39,9 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             {copy.footer.notice}
           </p>
           <div className="mt-5 grid gap-2 text-sm text-[var(--color-muted)]">
-            <span>{siteConfig.phoneDisplay}</span>
-            <span>{siteConfig.email}</span>
-            <span>{siteConfig.tursabCertificate}</span>
+            <span>{phone}</span>
+            <span>{email}</span>
+            <span>{tursab}</span>
           </div>
         </div>
 

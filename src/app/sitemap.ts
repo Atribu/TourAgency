@@ -1,10 +1,15 @@
 import type { MetadataRoute } from "next";
-import { allLandingPages, blogPosts, tours } from "@/lib/catalog";
+import { blogPosts } from "@/lib/catalog";
+import { getAllLandingPagesWithDemo, getAllToursWithDemo } from "@/lib/demo-store";
 import { locales, siteConfig } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const urls: MetadataRoute.Sitemap = [];
+  const [pages, tours] = await Promise.all([
+    getAllLandingPagesWithDemo(),
+    getAllToursWithDemo(),
+  ]);
 
   for (const locale of locales) {
     urls.push({
@@ -39,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
 
-    for (const page of allLandingPages) {
+    for (const page of pages) {
       urls.push({
         url:
           page.kind === "campaign"

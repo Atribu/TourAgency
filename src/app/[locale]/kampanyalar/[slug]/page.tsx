@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { TourCard } from "@/components/TourCard";
-import { campaigns, getLandingBySlug, getToursForLanding } from "@/lib/catalog";
+import { campaigns } from "@/lib/catalog";
+import {
+  getLandingBySlugWithDemo,
+  getToursForLandingWithDemo,
+} from "@/lib/demo-store";
 import { locales, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
@@ -13,6 +17,8 @@ type PageProps = {
 
 const isLocale = (locale: string): locale is Locale =>
   locales.includes(locale as Locale);
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
@@ -29,7 +35,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const page = getLandingBySlug(locale, slug);
+  const page = await getLandingBySlugWithDemo(locale, slug);
 
   if (!page || page.kind !== "campaign") {
     return {};
@@ -48,14 +54,14 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const page = getLandingBySlug(locale, slug);
+  const page = await getLandingBySlugWithDemo(locale, slug);
 
   if (!page || page.kind !== "campaign") {
     notFound();
   }
 
   const copy = t(locale);
-  const pageTours = getToursForLanding(page);
+  const pageTours = await getToursForLandingWithDemo(page);
 
   return (
     <main className="bg-[var(--color-sand)]">

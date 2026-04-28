@@ -5,11 +5,12 @@ import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { TourCard } from "@/components/TourCard";
+import { formatPrice, tours } from "@/lib/catalog";
 import {
-  formatPrice,
-  getTourBySlug,
-  tours,
-} from "@/lib/catalog";
+  getAllToursWithDemo,
+  getTourBySlugWithDemo,
+  readDemoStore,
+} from "@/lib/demo-store";
 import { locales, siteConfig, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
@@ -19,6 +20,8 @@ type PageProps = {
 
 const isLocale = (locale: string): locale is Locale =>
   locales.includes(locale as Locale);
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
@@ -35,7 +38,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const tour = getTourBySlug(locale, slug);
+  const tour = await getTourBySlugWithDemo(locale, slug);
 
   if (!tour) {
     return {};
@@ -66,14 +69,19 @@ export default async function TourDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const tour = getTourBySlug(locale, slug);
+  const tour = await getTourBySlugWithDemo(locale, slug);
 
   if (!tour) {
     notFound();
   }
 
   const copy = t(locale);
-  const similarTours = tours
+  const [allTours, store] = await Promise.all([
+    getAllToursWithDemo(),
+    readDemoStore(),
+  ]);
+  const settings = store.settings;
+  const similarTours = allTours
     .filter((item) => item.id !== tour.id)
     .filter((item) =>
       item.categoryIds.some((category) => tour.categoryIds.includes(category)),
@@ -100,7 +108,7 @@ export default async function TourDetailPage({ params }: PageProps) {
     })),
     provider: {
       "@type": "Organization",
-      name: "TourAgency",
+      name: settings.siteName || "TourAgency",
       url: siteConfig.baseUrl,
     },
   };
@@ -240,7 +248,10 @@ export default async function TourDetailPage({ params }: PageProps) {
               <Link className="button-primary" href={`/${locale}/${getLeadSlug(locale)}`}>
                 {copy.actions.request}
               </Link>
-              <a className="button-secondary !border-black/15 !text-[var(--color-ink)]" href={siteConfig.whatsappHref}>
+              <a
+                className="button-secondary !border-black/15 !text-[var(--color-ink)]"
+                href={getWhatsappHref(settings.whatsapp)}
+              >
                 {copy.actions.whatsapp}
               </a>
               <a className="button-secondary !border-black/15 !text-[var(--color-ink)]" href={tour.jollyUrl} rel="noopener noreferrer sponsored" target="_blank">
@@ -313,4 +324,9 @@ function getLeadSlug(locale: Locale) {
     de: "anfrage",
     ru: "zayavka",
   }[locale];
+}
+
+function getWhatsappHref(value?: string) {
+  const digits = value?.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : siteConfig.whatsappHref;
 }

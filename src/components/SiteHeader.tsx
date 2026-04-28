@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { categories, infoPages } from "@/lib/catalog";
+import type { DemoSettings } from "@/lib/demo-types";
 import { localeLabels, locales, siteConfig, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
-export function SiteHeader({ locale }: { locale: Locale }) {
+export function SiteHeader({
+  locale,
+  settings,
+}: {
+  locale: Locale;
+  settings?: DemoSettings;
+}) {
   const copy = t(locale);
+  const logoMark = settings?.logoMark || siteConfig.logoMark;
+  const siteName = settings?.siteName || siteConfig.name;
+  const whatsappHref = getWhatsappHref(settings?.whatsapp);
   const domestic = categories.find((category) => category.id === "domestic");
   const international = categories.find(
     (category) => category.id === "international",
@@ -45,11 +55,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
         <Link className="flex shrink-0 items-center gap-3" href={`/${locale}`}>
           <span className="grid size-11 place-items-center border border-white/30 bg-white text-sm font-black text-[var(--color-ink)]">
-            {siteConfig.logoMark}
+            {logoMark}
           </span>
           <span>
             <span className="block text-base font-black leading-5">
-              {siteConfig.name}
+              {siteName}
             </span>
             <span className="block text-xs text-white/70">
               {siteConfig.tagline}
@@ -85,11 +95,16 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               </Link>
             ))}
           </div>
-          <a className="button-header" href={siteConfig.whatsappHref}>
+          <a className="button-header" href={whatsappHref}>
             WhatsApp
           </a>
         </div>
       </div>
     </header>
   );
+}
+
+function getWhatsappHref(value?: string) {
+  const digits = value?.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : siteConfig.whatsappHref;
 }

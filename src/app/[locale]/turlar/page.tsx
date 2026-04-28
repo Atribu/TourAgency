@@ -4,12 +4,15 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { TourCard } from "@/components/TourCard";
 import { campaigns, categories, destinations, tours } from "@/lib/catalog";
+import { getAllToursWithDemo } from "@/lib/demo-store";
 import { locales, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
 };
+
+export const dynamic = "force-dynamic";
 
 const isLocale = (locale: string): locale is Locale =>
   locales.includes(locale as Locale);
@@ -46,6 +49,7 @@ export default async function ToursPage({ params }: PageProps) {
   }
 
   const copy = t(locale);
+  const allTours = await getAllToursWithDemo();
 
   return (
     <main className="bg-[var(--color-sand)]">
@@ -102,10 +106,10 @@ export default async function ToursPage({ params }: PageProps) {
           <SectionHeader
             eyebrow={copy.sections.featured}
             title={copy.nav.tours}
-            summary={`${tours.length} tur kartı, çok dilli veri modeli ve Jolly/ön talep aksiyonlarıyla hazırlandı.`}
+            summary={`${allTours.length} tur kartı, çok dilli veri modeli ve Jolly/ön talep aksiyonlarıyla hazırlandı.`}
           />
           <div className="mt-6 grid gap-5 xl:grid-cols-2">
-            {tours.map((tour) => (
+            {allTours.map((tour) => (
               <TourCard key={tour.id} locale={locale} tour={tour} />
             ))}
           </div>

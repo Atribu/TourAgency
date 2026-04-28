@@ -6,10 +6,13 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { TourCard } from "@/components/TourCard";
 import {
   allLandingPages,
-  getLandingBySlug,
-  getToursForLanding,
   legalPages,
 } from "@/lib/catalog";
+import {
+  getLandingBySlugWithDemo,
+  getToursForLandingWithDemo,
+  readDemoStore,
+} from "@/lib/demo-store";
 import { locales, siteConfig, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
@@ -19,6 +22,8 @@ type PageProps = {
 
 const isLocale = (locale: string): locale is Locale =>
   locales.includes(locale as Locale);
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
@@ -38,7 +43,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const page = getLandingBySlug(locale, pageSlug);
+  const page = await getLandingBySlugWithDemo(locale, pageSlug);
 
   if (!page) {
     return {};
@@ -63,15 +68,19 @@ export default async function LandingPage({ params }: PageProps) {
     notFound();
   }
 
-  const page = getLandingBySlug(locale, pageSlug);
+  const page = await getLandingBySlugWithDemo(locale, pageSlug);
 
   if (!page) {
     notFound();
   }
 
   const copy = t(locale);
-  const pageTours = getToursForLanding(page);
+  const [pageTours, store] = await Promise.all([
+    getToursForLandingWithDemo(page),
+    readDemoStore(),
+  ]);
   const showLeadForm = page.kind === "lead" || page.id === "contact";
+  const settings = store.settings;
 
   return (
     <main className="bg-[var(--color-sand)]">
@@ -122,10 +131,13 @@ export default async function LandingPage({ params }: PageProps) {
           <div className="border border-black/10 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black">{copy.sections.trust}</h2>
             <div className="mt-4 grid gap-3 text-sm text-[var(--color-muted)]">
-              <Info label="Jolly" value={siteConfig.defaultJollyUrl} />
-              <Info label={copy.labels.phone} value={siteConfig.phoneDisplay} />
-              <Info label="WhatsApp" value={siteConfig.whatsappDisplay} />
-              <Info label="TÜRSAB" value={siteConfig.tursabCertificate} />
+              <Info label="Jolly" value={settings.jollyUrl || siteConfig.defaultJollyUrl} />
+              <Info label={copy.labels.phone} value={settings.phone || siteConfig.phoneDisplay} />
+              <Info label="WhatsApp" value={settings.whatsapp || siteConfig.whatsappDisplay} />
+              <Info
+                label="TÜRSAB"
+                value={settings.tursabCertificate || siteConfig.tursabCertificate}
+              />
             </div>
           </div>
 

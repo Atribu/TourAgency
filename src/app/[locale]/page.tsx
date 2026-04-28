@@ -9,10 +9,10 @@ import {
   campaigns,
   categories,
   destinations,
-  tours,
 } from "@/lib/catalog";
+import { getAllToursWithDemo, readDemoStore } from "@/lib/demo-store";
 import { homeContent } from "@/lib/home-content";
-import { localeLabels, locales, siteConfig, type Locale } from "@/lib/site";
+import { localeLabels, locales, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
 
 type PageProps = {
@@ -23,6 +23,8 @@ type PageProps = {
 
 const isLocale = (locale: string): locale is Locale =>
   locales.includes(locale as Locale);
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -63,7 +65,11 @@ export default async function LocaleHome({ params }: PageProps) {
 
   const content = homeContent[locale];
   const copy = t(locale);
-  const featuredTours = tours.filter((tour) => tour.featured).slice(0, 4);
+  const [allTours, store] = await Promise.all([
+    getAllToursWithDemo(),
+    readDemoStore(),
+  ]);
+  const featuredTours = allTours.filter((tour) => tour.featured).slice(0, 4);
 
   return (
     <main className="min-h-screen bg-[var(--color-sand)] text-[var(--color-ink)]">
@@ -228,7 +234,7 @@ export default async function LocaleHome({ params }: PageProps) {
               {copy.sections.trust}
             </p>
             <h2 className="mt-3 text-3xl font-black">
-              {siteConfig.name} satış akışı
+              {store.settings.siteName} satış akışı
             </h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
