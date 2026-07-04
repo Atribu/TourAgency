@@ -24,9 +24,34 @@ export type DemoLead = {
   kvkk: boolean;
   marketing: boolean;
   jollyNotice: boolean;
+  channel: string;
+  owner: string;
+  lastContactAt: string;
+  nextFollowUpAt: string;
+  internalNote: string;
+  timeline: DemoLeadTimelineEntry[];
   status: DemoLeadStatus;
   createdAt: string;
   updatedAt: string;
+};
+
+export type DemoLeadTimelineEntry = {
+  id: string;
+  type: "not" | "arama" | "whatsapp" | "eposta" | "durum";
+  text: string;
+  owner: string;
+  createdAt: string;
+};
+
+export type DemoItineraryItem = {
+  day: string;
+  title: string;
+  text: string;
+};
+
+export type DemoFaqItem = {
+  question: string;
+  answer: string;
 };
 
 export type DemoTour = {
@@ -34,6 +59,7 @@ export type DemoTour = {
   slugs: Record<Locale, string>;
   title: Record<Locale, string>;
   summary: Record<Locale, string>;
+  description: Record<Locale, string>;
   image: string;
   categoryIds: string[];
   campaignIds: string[];
@@ -47,6 +73,11 @@ export type DemoTour = {
   visa: Record<Locale, string>;
   route: Record<Locale, string>;
   tags: Record<Locale, string[]>;
+  itinerary: Record<Locale, DemoItineraryItem[]>;
+  included: Record<Locale, string[]>;
+  excluded: Record<Locale, string[]>;
+  notes: Record<Locale, string[]>;
+  faqs: Record<Locale, DemoFaqItem[]>;
   featured: boolean;
   active: boolean;
   jollyUrl: string;
@@ -79,6 +110,12 @@ export type DemoManagedPage = {
   slugs: Record<Locale, string>;
   title: Record<Locale, string>;
   summary: Record<Locale, string>;
+  seoTitle: Record<Locale, string>;
+  seoDescription: Record<Locale, string>;
+  canonical: Record<Locale, string>;
+  ogImage: string;
+  keywords: string[];
+  noIndex: boolean;
   active: boolean;
   createdAt: string;
   updatedAt: string;

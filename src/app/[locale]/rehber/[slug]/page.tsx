@@ -35,7 +35,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${post.title[locale]} | TourAgency`,
+    title: `${post.title[locale]} | book to tour`,
     description: post.summary[locale],
     openGraph: {
       title: post.title[locale],

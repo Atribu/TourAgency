@@ -12,17 +12,17 @@ export const localeLabels: Record<Locale, string> = {
 };
 
 export const siteConfig = {
-  name: "TourAgency",
-  logoMark: "TA",
+  name: "book to tour",
+  logoMark: "BT",
   tagline: "Tatilin sıcak tarafı",
-  baseUrl: "https://example.com",
+  baseUrl: "https://www.booktotour.com",
   defaultJollyUrl: "https://www.jollytur.com/",
-  phoneDisplay: "+90 555 000 00 00",
-  phoneHref: "tel:+905550000000",
-  whatsappDisplay: "+90 555 000 00 00",
-  whatsappHref: "https://wa.me/905550000000",
-  email: "info@example.com",
-  address: "Acenta adresi sonradan eklenecek",
-  tursabCertificate: "TÜRSAB belge bilgisi sonradan eklenecek",
-  agencyTitle: "Acenta unvanı sonradan eklenecek",
+  phoneDisplay: "+90 850 000 00 00",
+  phoneHref: "tel:+908500000000",
+  whatsappDisplay: "+90 850 000 00 00",
+  whatsappHref: "https://wa.me/908500000000",
+  email: "info@booktotour.com",
+  address: "İstanbul, Türkiye",
+  tursabCertificate: "TÜRSAB belge alanı hazırlanıyor",
+  agencyTitle: "book to tour Turizm",
 };

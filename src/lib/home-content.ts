@@ -66,7 +66,7 @@ type HomeContent = {
 export const homeContent: Record<Locale, HomeContent> = {
   tr: {
     meta: {
-      title: "TourAgency | Çok Dilli Tur Satış ve Ön Talep Platformu",
+      title: "book to tour | Çok Dilli Tur Satış ve Rezervasyon Platformu",
       description:
         "Yurt içi, yurt dışı, vizesiz ve özel dönem turlarını keşfedin; ön talep bırakın, danışmanlık alın ve ödeme sürecini Jolly altyapısıyla tamamlayın.",
     },
@@ -81,10 +81,10 @@ export const homeContent: Record<Locale, HomeContent> = {
       contact: "İletişim",
     },
     hero: {
-      eyebrow: "Geçici marka yapısı hazır",
+      eyebrow: "book to tour ile güvenli tur planlama",
       title: "Hayalindeki turu bul, ön talebini bırak, satış danışmanı seni arasın.",
       description:
-        "Sıcak tatil hissi veren, keskin hatlı ve çok dilli bir tur platformu. Ödeme ve kesin rezervasyon süreci Jolly altyapısı üzerinden ilerleyecek şekilde planlandı.",
+        "Sıcak tatil hissi veren, keskin hatlı ve çok dilli bir tur platformu. Ön talep, danışman desteği ve kesin rezervasyon süreci Jolly altyapısıyla birlikte ilerler.",
       primary: "Turları İncele",
       secondary: "Ön Talep Bırak",
       searchPlaceholder: "Nereye gitmek istiyorsun?",
@@ -106,7 +106,7 @@ export const homeContent: Record<Locale, HomeContent> = {
     lead: {
       title: "Ön talep bırak",
       description:
-        "Gerçek form akışı sonraki adımlarda admin paneline bağlanacak. Şimdilik satış modelinin yeri ve dili hazır.",
+        "Tur tercihinizi iletin; satış danışmanı tarih, kontenjan ve ödeme yönlendirmesi için sizinle iletişime geçsin.",
       name: "Ad soyad",
       phone: "Telefon",
       email: "E-posta",
@@ -122,14 +122,14 @@ export const homeContent: Record<Locale, HomeContent> = {
       tursab: "TÜRSAB",
     },
     planning: {
-      title: "1. madde kapsamı",
+      title: "book to tour satış akışı",
       items: [
-        "Site adı ve logo sonradan değişecek şekilde merkezi ayarlandı.",
-        "Sıcak tatil renkleri ve daha keskin tasarım dili tanımlandı.",
-        "Genel Jolly yönlendirmesi ve geçici iletişim bilgileri eklendi.",
-        "TÜRSAB / acenta bilgileri için görünür alan bırakıldı.",
-        "Ön talep satış modeli ana akışa yerleştirildi.",
-        "TR, EN, DE ve RU dil temeli baştan kuruldu.",
+        "Turlar tek ekranda karşılaştırılır ve detay sayfalarından talep alınır.",
+        "Satış danışmanı uygun tarih, kontenjan ve fiyat bilgisini netleştirir.",
+        "Ödeme ve kesin rezervasyon adımı Jolly yönlendirmesiyle tamamlanır.",
+        "TÜRSAB / acenta bilgi alanları güven katmanı olarak görünür tutulur.",
+        "Ön talep ve rezervasyon talepleri yönetim panelinden takip edilir.",
+        "TR, EN, DE ve RU dillerinde aynı satış yapısı korunur.",
       ],
     },
     footer: {
@@ -139,7 +139,7 @@ export const homeContent: Record<Locale, HomeContent> = {
   },
   en: {
     meta: {
-      title: "TourAgency | Multilingual Tour Sales and Lead Platform",
+      title: "book to tour | Multilingual Tour Sales and Booking Platform",
       description:
         "Discover domestic, international, visa-free and seasonal tours; send a request, speak with a consultant and complete payment through the Jolly infrastructure.",
     },
@@ -154,10 +154,10 @@ export const homeContent: Record<Locale, HomeContent> = {
       contact: "Contact",
     },
     hero: {
-      eyebrow: "Temporary brand structure ready",
+      eyebrow: "Trusted tour planning with book to tour",
       title: "Find the right tour, send a request, and let a travel consultant call you.",
       description:
-        "A warm, sharp-edged, multilingual tour platform planned around lead collection and Jolly-powered payment and final reservation flow.",
+        "A warm, sharp-edged, multilingual tour platform built around request collection, consultant support and Jolly-powered final booking.",
       primary: "Browse Tours",
       secondary: "Send Request",
       searchPlaceholder: "Where would you like to go?",
@@ -179,7 +179,7 @@ export const homeContent: Record<Locale, HomeContent> = {
     lead: {
       title: "Send a request",
       description:
-        "The real form flow will be connected to the admin panel in the next steps. For now, the sales model has its place and wording.",
+        "Send your tour preference; a consultant will contact you about dates, availability and payment direction.",
       name: "Full name",
       phone: "Phone",
       email: "Email",
@@ -195,14 +195,14 @@ export const homeContent: Record<Locale, HomeContent> = {
       tursab: "TÜRSAB",
     },
     planning: {
-      title: "Scope of step 1",
+      title: "book to tour sales flow",
       items: [
-        "Site name and logo are centralized for later replacement.",
-        "Warm travel colors and a sharper visual language are defined.",
-        "General Jolly redirect and temporary contact details are added.",
-        "Visible TÜRSAB / agency information placeholders are included.",
-        "The lead-based sales model is placed into the core flow.",
-        "TR, EN, DE and RU language foundations are in place.",
+        "Tours are compared clearly and requests are collected from detail pages.",
+        "A consultant confirms date, availability and current price details.",
+        "Payment and final booking are completed through the Jolly redirect.",
+        "TÜRSAB / agency information areas remain visible for trust.",
+        "Requests and booking leads are tracked from the admin panel.",
+        "The same sales structure is supported in TR, EN, DE and RU.",
       ],
     },
     footer: {
@@ -212,7 +212,7 @@ export const homeContent: Record<Locale, HomeContent> = {
   },
   de: {
     meta: {
-      title: "TourAgency | Mehrsprachige Reiseplattform mit Anfragefluss",
+      title: "book to tour | Mehrsprachige Reiseplattform mit Anfragefluss",
       description:
         "Entdecken Sie Inlandsreisen, Auslandsreisen, visafreie Reisen und Saisonangebote; senden Sie eine Anfrage und schließen Sie Zahlung und Buchung über Jolly ab.",
     },
@@ -227,10 +227,10 @@ export const homeContent: Record<Locale, HomeContent> = {
       contact: "Kontakt",
     },
     hero: {
-      eyebrow: "Temporäre Markenstruktur bereit",
+      eyebrow: "Verlässliche Reiseplanung mit book to tour",
       title: "Finden Sie die passende Reise, senden Sie eine Anfrage und lassen Sie sich beraten.",
       description:
-        "Eine warme, klare und mehrsprachige Reiseplattform mit Anfragefluss und geplanter Zahlung sowie finaler Reservierung über Jolly.",
+        "Eine warme, klare und mehrsprachige Reiseplattform mit Anfragefluss, Beratung und finaler Buchung über Jolly.",
       primary: "Reisen ansehen",
       secondary: "Anfrage senden",
       searchPlaceholder: "Wohin möchten Sie reisen?",
@@ -252,7 +252,7 @@ export const homeContent: Record<Locale, HomeContent> = {
     lead: {
       title: "Anfrage senden",
       description:
-        "Der echte Formularfluss wird in den nächsten Schritten mit dem Admin-Panel verbunden. Der Verkaufsablauf ist vorerst sichtbar vorbereitet.",
+        "Senden Sie Ihre Reisewünsche; ein Berater meldet sich zu Terminen, Verfügbarkeit und Zahlung.",
       name: "Name",
       phone: "Telefon",
       email: "E-Mail",
@@ -268,14 +268,14 @@ export const homeContent: Record<Locale, HomeContent> = {
       tursab: "TÜRSAB",
     },
     planning: {
-      title: "Umfang von Schritt 1",
+      title: "book to tour Verkaufsablauf",
       items: [
-        "Name und Logo sind zentral für spätere Änderungen vorbereitet.",
-        "Warme Reisefarben und eine klare Formsprache sind definiert.",
-        "Allgemeine Jolly-Weiterleitung und temporäre Kontaktdaten sind ergänzt.",
-        "Platzhalter für TÜRSAB / Agenturdaten sind sichtbar angelegt.",
-        "Das Anfrage- und Vertriebsmodell ist im Hauptfluss platziert.",
-        "TR, EN, DE und RU Sprachgrundlagen sind eingerichtet.",
+        "Reisen werden klar verglichen und Anfragen über Detailseiten erfasst.",
+        "Ein Berater bestätigt Termin, Verfügbarkeit und aktuellen Preis.",
+        "Zahlung und finale Buchung erfolgen über die Jolly-Weiterleitung.",
+        "TÜRSAB / Agenturinformationen bleiben sichtbar eingebunden.",
+        "Anfragen und Buchungsleads werden im Admin-Panel verfolgt.",
+        "Die gleiche Verkaufsstruktur steht in TR, EN, DE und RU bereit.",
       ],
     },
     footer: {
@@ -285,7 +285,7 @@ export const homeContent: Record<Locale, HomeContent> = {
   },
   ru: {
     meta: {
-      title: "TourAgency | Многоязычная платформа туров и заявок",
+      title: "book to tour | Многоязычная платформа туров и заявок",
       description:
         "Изучайте туры по стране, зарубежные, безвизовые и сезонные предложения; оставляйте заявку и завершайте оплату через инфраструктуру Jolly.",
     },
@@ -300,7 +300,7 @@ export const homeContent: Record<Locale, HomeContent> = {
       contact: "Контакты",
     },
     hero: {
-      eyebrow: "Временная структура бренда готова",
+      eyebrow: "Надежное планирование туров с book to tour",
       title: "Найдите подходящий тур, оставьте заявку, и консультант свяжется с вами.",
       description:
         "Теплая, четкая и многоязычная платформа туров с заявками, консультацией и дальнейшей оплатой через Jolly.",
@@ -325,7 +325,7 @@ export const homeContent: Record<Locale, HomeContent> = {
     lead: {
       title: "Оставить заявку",
       description:
-        "Реальная форма будет подключена к админ-панели на следующих этапах. Сейчас подготовлены место и тексты для модели продаж.",
+        "Отправьте предпочтения по туру; консультант свяжется с вами по датам, наличию мест и оплате.",
       name: "Имя и фамилия",
       phone: "Телефон",
       email: "Эл. почта",
@@ -341,14 +341,14 @@ export const homeContent: Record<Locale, HomeContent> = {
       tursab: "TÜRSAB",
     },
     planning: {
-      title: "Объем шага 1",
+      title: "Процесс продаж book to tour",
       items: [
-        "Название сайта и логотип централизованы для будущей замены.",
-        "Определены теплые туристические цвета и более четкий стиль.",
-        "Добавлены общий переход на Jolly и временные контакты.",
-        "Подготовлены видимые поля для TÜRSAB / данных агентства.",
-        "Модель заявок встроена в основной путь продаж.",
-        "Основа языков TR, EN, DE и RU создана с самого начала.",
+        "Туры удобно сравниваются, заявки собираются со страниц деталей.",
+        "Консультант уточняет дату, наличие мест и актуальную цену.",
+        "Оплата и финальное бронирование выполняются через переход Jolly.",
+        "Блоки TÜRSAB / агентства остаются видимыми для доверия.",
+        "Заявки и бронирования отслеживаются в админ-панели.",
+        "Одинаковая структура продаж поддерживается на TR, EN, DE и RU.",
       ],
     },
     footer: {

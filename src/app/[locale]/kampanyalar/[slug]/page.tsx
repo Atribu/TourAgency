@@ -42,7 +42,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${page.title[locale]} | TourAgency`,
+    title: `${page.title[locale]} | book to tour`,
     description: page.summary[locale],
   };
 }

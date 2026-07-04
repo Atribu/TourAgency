@@ -15,7 +15,7 @@ type LocaleLayoutProps = Readonly<{
 }>;
 
 export const metadata: Metadata = {
-  title: "TourAgency",
+  title: "book to tour",
   description: "Çok dilli tur satış ve ön talep platformu.",
 };
 

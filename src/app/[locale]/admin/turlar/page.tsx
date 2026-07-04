@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AdminPanel from "./_components/AdminPanel";
+import AdminPanel from "../_components/AdminPanel";
 import { locales } from "@/lib/site";
 
 type PageProps = {
@@ -15,11 +15,11 @@ export function generateStaticParams() {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "book to tour Admin Dashboard",
-    description: "book to tour yönetim paneli dashboard ekranı.",
+    title: "Turlar | book to tour Admin",
+    description: "Tur, tarih, kontenjan ve fiyat yönetimi.",
   };
 }
 
-export default function AdminDashboardPage({ params, searchParams }: PageProps) {
-  return <AdminPanel params={params} searchParams={searchParams} section="dashboard" />;
+export default function AdminToursPage({ params, searchParams }: PageProps) {
+  return <AdminPanel params={params} searchParams={searchParams} section="tours" />;
 }

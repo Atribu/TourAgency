@@ -3,8 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LeadForm } from "@/components/LeadForm";
 import { PageHero } from "@/components/PageHero";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import { SectionHeader } from "@/components/SectionHeader";
 import { TourCard } from "@/components/TourCard";
+import { TrackedOutboundLink } from "@/components/TrackedOutboundLink";
 import { formatPrice, tours } from "@/lib/catalog";
 import {
   getAllToursWithDemo,
@@ -13,6 +15,7 @@ import {
 } from "@/lib/demo-store";
 import { locales, siteConfig, type Locale } from "@/lib/site";
 import { t } from "@/lib/translations";
+import { trackingEvents } from "@/lib/tracking";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -45,7 +48,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${tour.title[locale]} | TourAgency`,
+    title: `${tour.title[locale]} | book to tour`,
     description: tour.summary[locale],
     alternates: {
       canonical: `/${locale}/turlar/${tour.slugs[locale]}`,
@@ -108,13 +111,21 @@ export default async function TourDetailPage({ params }: PageProps) {
     })),
     provider: {
       "@type": "Organization",
-      name: settings.siteName || "TourAgency",
+      name: settings.siteName || "book to tour",
       url: siteConfig.baseUrl,
     },
   };
 
   return (
     <main className="bg-[var(--color-sand)]">
+      <PageViewTracker
+        eventName={trackingEvents.tourView}
+        payload={{
+          locale,
+          tourId: tour.id,
+          tourTitle: tour.title[locale],
+        }}
+      />
       <script
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         type="application/ld+json"
@@ -189,14 +200,22 @@ export default async function TourDetailPage({ params }: PageProps) {
                       </td>
                       <td className="p-3">{date.availability[locale]}</td>
                       <td className="p-3">
-                        <a
+                        <TrackedOutboundLink
                           className="font-black text-[var(--color-coral)]"
+                          eventName={trackingEvents.jollyClick}
                           href={date.jollyUrl ?? tour.jollyUrl}
+                          payload={{
+                            dateStart: date.start,
+                            locale,
+                            source: "date_table",
+                            tourId: tour.id,
+                            tourTitle: tour.title[locale],
+                          }}
                           rel="noopener noreferrer sponsored"
                           target="_blank"
                         >
                           {copy.actions.jolly}
-                        </a>
+                        </TrackedOutboundLink>
                       </td>
                       <td className="p-3">
                         <Link
@@ -248,18 +267,49 @@ export default async function TourDetailPage({ params }: PageProps) {
               <Link className="button-primary" href={`/${locale}/${getLeadSlug(locale)}`}>
                 {copy.actions.request}
               </Link>
-              <a
+              <TrackedOutboundLink
                 className="button-secondary !border-black/15 !text-[var(--color-ink)]"
+                eventName={trackingEvents.whatsappClick}
                 href={getWhatsappHref(settings.whatsapp)}
+                payload={{
+                  locale,
+                  source: "booking_panel",
+                  tourId: tour.id,
+                  tourTitle: tour.title[locale],
+                }}
               >
                 {copy.actions.whatsapp}
-              </a>
-              <a className="button-secondary !border-black/15 !text-[var(--color-ink)]" href={tour.jollyUrl} rel="noopener noreferrer sponsored" target="_blank">
+              </TrackedOutboundLink>
+              <TrackedOutboundLink
+                className="button-secondary !border-black/15 !text-[var(--color-ink)]"
+                eventName={trackingEvents.jollyClick}
+                href={tour.jollyUrl}
+                payload={{
+                  locale,
+                  source: "booking_panel",
+                  tourId: tour.id,
+                  tourTitle: tour.title[locale],
+                }}
+                rel="noopener noreferrer sponsored"
+                target="_blank"
+              >
                 {copy.actions.jolly}
-              </a>
+              </TrackedOutboundLink>
             </div>
           </div>
-          <LeadForm locale={locale} tourTitle={tour.title[locale]} />
+          <LeadForm
+            currency={tour.currency}
+            locale={locale}
+            priceFrom={tour.priceFrom}
+            tourDates={tour.dates.map((date) => ({
+              availability: date.availability[locale],
+              currency: date.currency,
+              end: date.end,
+              price: date.price,
+              start: date.start,
+            }))}
+            tourTitle={tour.title[locale]}
+          />
         </aside>
       </section>
 

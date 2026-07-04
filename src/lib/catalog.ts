@@ -51,6 +51,10 @@ export type LandingPage = {
   linkedTourIds?: string[];
   seoTitle?: Localized;
   seoDescription?: Localized;
+  canonical?: Localized;
+  ogImage?: string;
+  keywords?: string[];
+  noIndex?: boolean;
 };
 
 export type BlogPost = {
@@ -895,7 +899,7 @@ export const infoPages: LandingPage[] = [
         "Yönlendirme kontrolleri: Jolly, WhatsApp, telefon, e-posta, UTM ve outbound click izleme.",
         "SEO kontrolleri: title, meta description, canonical, hreflang, sitemap, robots, Open Graph, schema, breadcrumb ve temiz URL.",
         "Performans ve güvenlik: görsel optimizasyonu, lazy loading, admin erişimi, spam koruması, ortam değişkenleri ve dosya yükleme kontrolleri.",
-        "Yasal ve içerik kontrolleri: KVKK, gizlilik, çerez, kullanım şartları, Jolly bilgilendirmesi, TÜRSAB alanı, geçici logo ve iletişim bilgileri.",
+        "Yasal ve içerik kontrolleri: KVKK, gizlilik, çerez, kullanım şartları, Jolly bilgilendirmesi, TÜRSAB alanı, logo ve iletişim bilgileri.",
         "Yayın sonrası ilk 24-48 saat: erişim, formlar, admin panel, mobil görünüm, tıklama takibi, analytics ve hata logları kontrol edilir.",
       ],
       en: [
@@ -904,7 +908,7 @@ export const infoPages: LandingPage[] = [
         "Redirect checks: Jolly, WhatsApp, phone, email, UTM and outbound click tracking.",
         "SEO checks: title, meta description, canonical, hreflang, sitemap, robots, Open Graph, schema, breadcrumb and clean URLs.",
         "Performance and security: image optimization, lazy loading, admin access, spam protection, environment variables and upload controls.",
-        "Legal and content checks: privacy, cookies, terms, Jolly notice, TÜRSAB area, temporary logo and contact information.",
+        "Legal and content checks: privacy, cookies, terms, Jolly notice, TÜRSAB area, logo and contact information.",
         "First 24-48 hours after launch: availability, forms, admin panel, mobile view, click tracking, analytics and error logs.",
       ],
       de: [
@@ -913,7 +917,7 @@ export const infoPages: LandingPage[] = [
         "Weiterleitungen: Jolly, WhatsApp, Telefon, E-Mail, UTM und Outbound-Tracking.",
         "SEO: Title, Meta Description, Canonical, Hreflang, Sitemap, Robots, Open Graph, Schema, Breadcrumb und saubere URLs.",
         "Performance und Sicherheit: Bildoptimierung, Lazy Loading, Admin-Zugriff, Spam-Schutz, Umgebungsvariablen und Upload-Kontrollen.",
-        "Recht und Inhalt: Datenschutz, Cookies, Bedingungen, Jolly-Hinweis, TÜRSAB-Bereich, temporäres Logo und Kontakte.",
+        "Recht und Inhalt: Datenschutz, Cookies, Bedingungen, Jolly-Hinweis, TÜRSAB-Bereich, Logo und Kontakte.",
         "Erste 24-48 Stunden: Erreichbarkeit, Formulare, Admin, Mobile, Klicktracking, Analytics und Fehlerlogs.",
       ],
       ru: [
@@ -922,7 +926,7 @@ export const infoPages: LandingPage[] = [
         "Переходы: Jolly, WhatsApp, телефон, email, UTM и отслеживание внешних кликов.",
         "SEO: title, meta description, canonical, hreflang, sitemap, robots, Open Graph, schema, breadcrumb и чистые URL.",
         "Производительность и безопасность: изображения, lazy loading, доступ admin, антиспам, переменные среды и загрузки.",
-        "Право и контент: конфиденциальность, cookies, условия, Jolly, TÜRSAB, временный логотип и контакты.",
+        "Право и контент: конфиденциальность, cookies, условия, Jolly, TÜRSAB, логотип и контакты.",
         "Первые 24-48 часов: доступность, формы, admin, мобильный вид, клики, analytics и логи ошибок.",
       ],
     },
@@ -937,10 +941,10 @@ export const legalPages: LandingPage[] = [
     title: { tr: "KVKK Aydınlatma Metni", en: "Privacy Notice", de: "Datenschutzhinweis", ru: "Уведомление о конфиденциальности" },
     summary: { tr: "Ön talep ve iletişim formlarında işlenen kişisel veriler hakkında bilgilendirme.", en: "Information about personal data processed in request and contact forms.", de: "Informationen zu personenbezogenen Daten in Anfrage- und Kontaktformularen.", ru: "Информация о персональных данных в формах заявки и контакта." },
     body: {
-      tr: ["Bu metin taslak bilgilendirme alanıdır; gerçek hukuki metin marka ve şirket bilgileri netleşince düzenlenmelidir.", "Form verileri talep takibi ve satış danışmanlığı amacıyla işlenecek şekilde planlanmıştır."],
-      en: ["This is a draft information area; the final legal text should be updated when company details are ready.", "Form data is planned for request tracking and sales consultation."],
-      de: ["Dies ist ein Entwurfsbereich; der finale Rechtstext sollte mit Firmendaten aktualisiert werden.", "Formulardaten dienen Anfrageverfolgung und Beratung."],
-      ru: ["Это черновой информационный блок; финальный текст обновляется после данных компании.", "Данные форм используются для отслеживания заявки и консультации."],
+      tr: ["Bu bilgilendirme metni, ön talep ve iletişim süreçlerinde işlenen verilerin hangi amaçlarla kullanılacağını açıklar.", "Form verileri talep takibi ve satış danışmanlığı amacıyla işlenir."],
+      en: ["This notice explains how data processed through request and contact flows is used.", "Form data is used for request tracking and sales consultation."],
+      de: ["Dieser Hinweis erklärt, wie Daten aus Anfrage- und Kontaktprozessen genutzt werden.", "Formulardaten dienen Anfrageverfolgung und Beratung."],
+      ru: ["Это уведомление объясняет, как используются данные из форм заявки и контакта.", "Данные форм используются для отслеживания заявки и консультации."],
     },
   },
   {
@@ -964,7 +968,7 @@ export const legalPages: LandingPage[] = [
     kind: "legal",
     slugs: { tr: "kullanim-sartlari", en: "terms-of-use", de: "nutzungsbedingungen", ru: "usloviya-ispolzovaniya" },
     title: { tr: "Kullanım Şartları", en: "Terms of Use", de: "Nutzungsbedingungen", ru: "Условия использования" },
-    summary: { tr: "Site kullanımı ve bilgilendirme sınırlarına ilişkin taslak metin.", en: "Draft text on site usage and information boundaries.", de: "Entwurf zu Nutzung und Informationsgrenzen.", ru: "Черновой текст об использовании сайта." },
+    summary: { tr: "Site kullanımı ve bilgilendirme sınırlarına ilişkin metin.", en: "Text on site usage and information boundaries.", de: "Hinweise zu Nutzung und Informationsgrenzen.", ru: "Текст об использовании сайта." },
     body: { tr: ["Site içeriği tur tanıtımı ve ön talep toplama amacıyla sunulur."], en: ["Site content is provided for tour promotion and request collection."], de: ["Website-Inhalte dienen Reiseinformation und Anfrageerfassung."], ru: ["Контент сайта предназначен для информации о турах и заявок."] },
   },
   {
@@ -981,7 +985,7 @@ export const legalPages: LandingPage[] = [
     slugs: { tr: "mesafeli-satis-paket-tur-bilgilendirme", en: "distance-sales-package-tour-information", de: "fernabsatz-pauschalreise-information", ru: "distantsionnaya-prodazha-paketnyy-tur" },
     title: { tr: "Mesafeli Satış / Paket Tur Bilgilendirme", en: "Distance Sales / Package Tour Information", de: "Fernabsatz / Pauschalreise Information", ru: "Дистанционная продажа / пакетный тур" },
     summary: { tr: "Paket tur ve mesafeli satış süreçleri için bilgilendirme alanı.", en: "Information area for package tour and distance sales processes.", de: "Informationen zu Pauschalreise und Fernabsatz.", ru: "Информация о пакетных турах и дистанционной продаже." },
-    body: { tr: ["Bu sayfa hukuki danışmanlıkla nihai hale getirilmelidir.", "Ön talep ödeme veya sözleşme kurulması anlamına gelmez."], en: ["This page should be finalized with legal counsel.", "A request does not mean payment or contract formation."], de: ["Diese Seite sollte rechtlich finalisiert werden.", "Eine Anfrage ist keine Zahlung oder Vertragsbildung."], ru: ["Страница должна быть финализирована юристом.", "Заявка не означает оплату или договор."] },
+    body: { tr: ["Ön talep ödeme veya sözleşme kurulması anlamına gelmez.", "Kesin rezervasyon ve ödeme adımı Jolly yönlendirmesi üzerinden tamamlanır."], en: ["A request does not mean payment or contract formation.", "Final reservation and payment are completed through the Jolly redirect."], de: ["Eine Anfrage ist keine Zahlung oder Vertragsbildung.", "Finale Reservierung und Zahlung erfolgen über die Jolly-Weiterleitung."], ru: ["Заявка не означает оплату или договор.", "Финальное бронирование и оплата выполняются через переход Jolly."] },
   },
   {
     id: "tursab",
@@ -989,7 +993,7 @@ export const legalPages: LandingPage[] = [
     slugs: { tr: "tursab-acenta-bilgileri", en: "tursab-agency-information", de: "tursab-agenturinformationen", ru: "informatsiya-tursab-agentstvo" },
     title: { tr: "TÜRSAB / Acenta Bilgileri", en: "TÜRSAB / Agency Information", de: "TÜRSAB / Agenturinformationen", ru: "TÜRSAB / информация агентства" },
     summary: { tr: "Acenta unvanı, belge numarası ve dijital doğrulama alanları.", en: "Agency title, certificate number and digital verification areas.", de: "Agenturname, Zertifikatnummer und digitale Prüfung.", ru: "Название агентства, номер документа и проверка." },
-    body: { tr: ["Gerçek TÜRSAB ve acenta bilgileri sonradan admin panelden eklenecektir."], en: ["Real TÜRSAB and agency information will be added later from the admin panel."], de: ["Echte TÜRSAB- und Agenturdaten werden später im Admin ergänzt."], ru: ["Реальные данные TÜRSAB и агентства будут добавлены позже."] },
+    body: { tr: ["TÜRSAB ve acenta bilgileri yönetim panelindeki site ayarları üzerinden güncel tutulur."], en: ["TÜRSAB and agency information is kept up to date through site settings in the admin panel."], de: ["TÜRSAB- und Agenturdaten werden über die Seiteneinstellungen im Admin aktuell gehalten."], ru: ["Данные TÜRSAB и агентства обновляются через настройки сайта в админ-панели."] },
   },
   {
     id: "cancellation",

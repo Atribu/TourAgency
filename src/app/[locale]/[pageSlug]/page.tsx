@@ -49,14 +49,35 @@ export async function generateMetadata({
     return {};
   }
 
+  const title = `${page.seoTitle?.[locale] ?? page.title[locale]} | book to tour`;
+  const description = page.seoDescription?.[locale] ?? page.summary[locale];
+  const canonical = page.canonical?.[locale] || `/${locale}/${page.slugs[locale]}`;
+  const image = page.ogImage || page.image;
+
   return {
-    title: `${page.seoTitle?.[locale] ?? page.title[locale]} | TourAgency`,
-    description: page.seoDescription?.[locale] ?? page.summary[locale],
+    title,
+    description,
+    keywords: page.keywords,
+    robots: page.noIndex
+      ? {
+          index: false,
+          follow: false,
+        }
+      : {
+          index: true,
+          follow: true,
+        },
     alternates: {
-      canonical: `/${locale}/${page.slugs[locale]}`,
+      canonical,
       languages: Object.fromEntries(
         locales.map((item) => [item, `/${item}/${page.slugs[item]}`]),
       ),
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: image ? [image] : undefined,
     },
   };
 }

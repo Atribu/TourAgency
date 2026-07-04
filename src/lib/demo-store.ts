@@ -13,8 +13,11 @@ import {
   type DemoContactRequest,
   type DemoContactStatus,
   type DemoEvent,
+  type DemoFaqItem,
+  type DemoItineraryItem,
   type DemoLead,
   type DemoLeadStatus,
+  type DemoLeadTimelineEntry,
   type DemoManagedPage,
   type DemoManagedPageKind,
   type DemoStore,
@@ -23,7 +26,10 @@ import {
   type DemoUser,
   type DemoUserRole,
 } from "./demo-types";
-import { siteConfig, type Locale } from "./site";
+import { locales, siteConfig, type Locale } from "./site";
+
+type LocalizedStringInput = string | Partial<Record<Locale, string>>;
+type LocalizedListInput = string | Partial<Record<Locale, string>>;
 
 const storeDir = path.join(process.cwd(), ".demo-data");
 const storeFile = path.join(storeDir, "touragency-store.json");
@@ -35,7 +41,7 @@ const seededLeads: DemoLead[] = [
     id: "lead_demo_ayse",
     name: "Ayşe Demir",
     phone: "+90 555 111 22 33",
-    email: "ayse@example.com",
+    email: "ayse.demir@booktotour.demo",
     travelers: "2",
     preferredDate: "2026-07",
     note: "2 kişi, Temmuz ilk haftası, İstanbul çıkışlı.",
@@ -45,6 +51,20 @@ const seededLeads: DemoLead[] = [
     kvkk: true,
     marketing: false,
     jollyNotice: true,
+    channel: "Telefon",
+    owner: "Satış danışmanı",
+    lastContactAt: "",
+    nextFollowUpAt: "2026-07-04",
+    internalNote: "İlk arama öncelikli.",
+    timeline: [
+      {
+        id: "timeline_demo_ayse_1",
+        type: "not",
+        text: "Talep web formu üzerinden geldi.",
+        owner: "Sistem",
+        createdAt: "2026-04-22T09:00:00.000Z",
+      },
+    ],
     status: "Yeni",
     createdAt: "2026-04-22T09:00:00.000Z",
     updatedAt: "2026-04-22T09:00:00.000Z",
@@ -53,7 +73,7 @@ const seededLeads: DemoLead[] = [
     id: "lead_demo_murat",
     name: "Murat Kaya",
     phone: "+90 555 333 44 55",
-    email: "murat@example.com",
+    email: "murat.kaya@booktotour.demo",
     travelers: "4",
     preferredDate: "Kurban Bayramı",
     note: "Bayram dönemi için aile kontenjanı soruyor.",
@@ -63,6 +83,20 @@ const seededLeads: DemoLead[] = [
     kvkk: true,
     marketing: true,
     jollyNotice: true,
+    channel: "WhatsApp",
+    owner: "Satış danışmanı",
+    lastContactAt: "2026-04-22",
+    nextFollowUpAt: "2026-07-05",
+    internalNote: "Aile kontenjanı ve çocuk fiyatı kontrol edilecek.",
+    timeline: [
+      {
+        id: "timeline_demo_murat_1",
+        type: "durum",
+        text: "Teklif verildi durumuna alındı.",
+        owner: "Satış danışmanı",
+        createdAt: "2026-04-22T09:20:00.000Z",
+      },
+    ],
     status: "Teklif verildi",
     createdAt: "2026-04-22T09:15:00.000Z",
     updatedAt: "2026-04-22T09:20:00.000Z",
@@ -71,7 +105,7 @@ const seededLeads: DemoLead[] = [
     id: "lead_demo_elena",
     name: "Elena Petrova",
     phone: "+7 900 000 00 00",
-    email: "elena@example.com",
+    email: "elena.petrova@booktotour.demo",
     travelers: "2",
     preferredDate: "August",
     note: "Rusça dönüş istedi, WhatsApp uygun.",
@@ -81,6 +115,20 @@ const seededLeads: DemoLead[] = [
     kvkk: true,
     marketing: true,
     jollyNotice: true,
+    channel: "WhatsApp",
+    owner: "Satış danışmanı",
+    lastContactAt: "2026-04-22",
+    nextFollowUpAt: "2026-07-04",
+    internalNote: "Rusça dönüş yapılacak.",
+    timeline: [
+      {
+        id: "timeline_demo_elena_1",
+        type: "whatsapp",
+        text: "WhatsApp üzerinden Rusça dönüş planlandı.",
+        owner: "Satış danışmanı",
+        createdAt: "2026-04-22T10:10:00.000Z",
+      },
+    ],
     status: "Takipte",
     createdAt: "2026-04-22T10:00:00.000Z",
     updatedAt: "2026-04-22T10:10:00.000Z",
@@ -92,7 +140,7 @@ const seededContacts: DemoContactRequest[] = [
     id: "contact_demo_1",
     name: "Deniz Arslan",
     phone: "+90 555 222 33 44",
-    email: "deniz@example.com",
+    email: "deniz.arslan@booktotour.demo",
     subject: "Genel tur danışmanlığı",
     message: "Ailem için yaz döneminde kısa yurt dışı turu önerisi istiyorum.",
     locale: "tr",
@@ -106,7 +154,7 @@ const seededUsers: DemoUser[] = [
   {
     id: "user_demo_admin",
     name: "Admin Kullanıcı",
-    email: "admin@example.com",
+    email: "admin@booktotour.demo",
     role: "Yönetici",
     active: true,
     createdAt: "2026-04-22T08:00:00.000Z",
@@ -115,7 +163,7 @@ const seededUsers: DemoUser[] = [
   {
     id: "user_demo_sales",
     name: "Satış Danışmanı",
-    email: "sales@example.com",
+    email: "sales@booktotour.demo",
     role: "Satış danışmanı",
     active: true,
     createdAt: "2026-04-22T08:05:00.000Z",
@@ -168,9 +216,35 @@ function normalizeStore(store: Partial<DemoStore>): DemoStore {
       ...empty.settings,
       ...(store.settings ?? {}),
     },
-    leads: store.leads ?? empty.leads,
+    leads: (store.leads ?? empty.leads).map((lead) => ({
+      ...lead,
+      channel: lead.channel ?? "Telefon",
+      owner: lead.owner ?? "Satış danışmanı",
+      lastContactAt: lead.lastContactAt ?? "",
+      nextFollowUpAt: lead.nextFollowUpAt ?? "",
+      internalNote: lead.internalNote ?? "",
+      timeline:
+        lead.timeline ??
+        [
+          {
+            id: randomUUID(),
+            type: "not",
+            text: "Talep demo store'a aktarıldı.",
+            owner: "Sistem",
+            createdAt: lead.createdAt ?? now(),
+          },
+        ],
+    })),
     tours: (store.tours ?? []).map((tour) => ({
       ...tour,
+      description: tour.description ?? tour.summary,
+      itinerary: tour.itinerary ?? defaultItinerary(),
+      included: tour.included ?? localizedList(undefined, ["Danışmanlık", "Jolly yönlendirme"]),
+      excluded: tour.excluded ?? localizedList(undefined, ["Kişisel harcamalar"]),
+      notes:
+        tour.notes ??
+        localizedList(undefined, ["Fiyat ve kontenjan satış danışmanı tarafından teyit edilir."]),
+      faqs: tour.faqs ?? defaultFaqs(),
       dates:
         tour.dates?.length
           ? tour.dates
@@ -191,7 +265,22 @@ function normalizeStore(store: Partial<DemoStore>): DemoStore {
               },
             ],
     })),
-    managedPages: store.managedPages ?? empty.managedPages,
+    managedPages: (store.managedPages ?? empty.managedPages).map((page) => ({
+      ...page,
+      seoTitle: page.seoTitle ?? page.title,
+      seoDescription: page.seoDescription ?? page.summary,
+      canonical:
+        page.canonical ??
+        ({
+          tr: "",
+          en: "",
+          de: "",
+          ru: "",
+        } satisfies Record<Locale, string>),
+      ogImage: page.ogImage ?? "",
+      keywords: page.keywords ?? [],
+      noIndex: Boolean(page.noIndex),
+    })),
     contacts: store.contacts ?? empty.contacts,
     users: store.users ?? empty.users,
     events: store.events ?? empty.events,
@@ -222,6 +311,20 @@ export async function createDemoLead(
     kvkk: Boolean(payload.kvkk),
     marketing: Boolean(payload.marketing),
     jollyNotice: Boolean(payload.jollyNotice),
+    channel: String(payload.channel ?? "Telefon"),
+    owner: String(payload.owner ?? "Satış danışmanı"),
+    lastContactAt: String(payload.lastContactAt ?? ""),
+    nextFollowUpAt: String(payload.nextFollowUpAt ?? ""),
+    internalNote: String(payload.internalNote ?? ""),
+    timeline: [
+      {
+        id: randomUUID(),
+        type: "not",
+        text: "Yeni talep oluşturuldu.",
+        owner: "Sistem",
+        createdAt: timestamp,
+      },
+    ],
     status: "Yeni",
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -243,6 +346,18 @@ export async function updateDemoLeadStatus(
     return null;
   }
 
+  if (lead.status !== status) {
+    lead.timeline = [
+      {
+        id: randomUUID(),
+        type: "durum",
+        text: `${lead.status} durumundan ${status} durumuna alındı.`,
+        owner: lead.owner || "Satış danışmanı",
+        createdAt: now(),
+      },
+      ...(lead.timeline ?? []),
+    ];
+  }
   lead.status = status;
   lead.updatedAt = now();
   await writeDemoStore(store);
@@ -257,6 +372,11 @@ export async function updateDemoLead(input: {
   travelers: string;
   preferredDate: string;
   note: string;
+  channel: string;
+  owner: string;
+  lastContactAt: string;
+  nextFollowUpAt: string;
+  internalNote: string;
   status: DemoLeadStatus;
 }) {
   const store = await readDemoStore();
@@ -266,6 +386,7 @@ export async function updateDemoLead(input: {
     return null;
   }
 
+  const previousStatus = lead.status;
   Object.assign(lead, {
     name: input.name,
     phone: input.phone,
@@ -273,9 +394,55 @@ export async function updateDemoLead(input: {
     travelers: input.travelers,
     preferredDate: input.preferredDate,
     note: input.note,
+    channel: input.channel,
+    owner: input.owner,
+    lastContactAt: input.lastContactAt,
+    nextFollowUpAt: input.nextFollowUpAt,
+    internalNote: input.internalNote,
     status: input.status,
     updatedAt: now(),
   });
+
+  if (previousStatus !== input.status) {
+    lead.timeline = [
+      {
+        id: randomUUID(),
+        type: "durum",
+        text: `${previousStatus} durumundan ${input.status} durumuna alındı.`,
+        owner: input.owner || "Satış danışmanı",
+        createdAt: now(),
+      },
+      ...(lead.timeline ?? []),
+    ];
+  }
+  await writeDemoStore(store);
+  return lead;
+}
+
+export async function addDemoLeadTimeline(input: {
+  id: string;
+  owner: string;
+  text: string;
+  type: DemoLeadTimelineEntry["type"];
+}) {
+  const store = await readDemoStore();
+  const lead = store.leads.find((item) => item.id === input.id);
+
+  if (!lead || !input.text.trim()) {
+    return null;
+  }
+
+  lead.timeline = [
+    {
+      id: randomUUID(),
+      type: input.type,
+      text: input.text.trim(),
+      owner: input.owner.trim() || lead.owner || "Satış danışmanı",
+      createdAt: now(),
+    },
+    ...(lead.timeline ?? []),
+  ];
+  lead.updatedAt = now();
   await writeDemoStore(store);
   return lead;
 }
@@ -289,82 +456,64 @@ export async function deleteDemoLead(id: string) {
 }
 
 export async function createDemoTour(input: {
-  title: string;
-  slug: string;
-  summary?: string;
+  title: LocalizedStringInput;
+  slug: LocalizedStringInput;
+  summary?: LocalizedStringInput;
+  description?: LocalizedStringInput;
+  image?: string;
   priceFrom: number;
   currency: Tour["currency"];
   categoryId: string;
+  durationDays?: number;
+  durationNights?: number;
+  departures?: LocalizedStringInput;
+  transport?: LocalizedStringInput;
+  visa?: LocalizedStringInput;
+  route?: LocalizedStringInput;
+  tags?: LocalizedStringInput;
+  itinerary?: LocalizedListInput;
+  included?: LocalizedListInput;
+  excluded?: LocalizedListInput;
+  notes?: LocalizedListInput;
+  faqs?: LocalizedListInput;
+  featured?: boolean;
   jollyUrl?: string;
 }) {
   const store = await readDemoStore();
   const timestamp = now();
-  const slug = slugify(input.slug || input.title);
-  const title = input.title.trim();
-  const summary =
-    input.summary?.trim() ||
-    "Admin panelden eklenen demo tur. Detay içerikleri sonradan tamamlanacak.";
+  const title = localizedText(input.title, "Yeni tur");
+  const summary = localizedText(
+    input.summary,
+    "Admin panelden eklenen tur. Detay içerikleri yönetim panelinden zenginleştirilebilir.",
+  );
 
   const tour: DemoTour = {
     id: randomUUID(),
-    slugs: {
-      tr: slug,
-      en: `${slug}-en`,
-      de: `${slug}-de`,
-      ru: `${slug}-ru`,
-    },
-    title: {
-      tr: title,
-      en: `${title} EN`,
-      de: `${title} DE`,
-      ru: `${title} RU`,
-    },
-    summary: {
-      tr: summary,
-      en: summary,
-      de: summary,
-      ru: summary,
-    },
+    slugs: localizedSlugs(input.slug, title),
+    title,
+    summary,
+    description: localizedText(input.description, summary),
     image:
+      input.image?.trim() ||
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80",
     categoryIds: [input.categoryId],
     campaignIds: ["early-booking"],
     destinationIds: [],
     priceFrom: input.priceFrom,
     currency: input.currency,
-    durationDays: 4,
-    durationNights: 3,
-    departures: {
-      tr: ["İstanbul"],
-      en: ["Istanbul"],
-      de: ["Istanbul"],
-      ru: ["Стамбул"],
-    },
-    transport: {
-      tr: "Uçak / Otobüs",
-      en: "Flight / Coach",
-      de: "Flug / Bus",
-      ru: "Рейс / автобус",
-    },
-    visa: {
-      tr: "Tur koşullarına göre",
-      en: "Depends on tour conditions",
-      de: "Je nach Reisebedingungen",
-      ru: "По условиям тура",
-    },
-    route: {
-      tr: "Rota admin panelden tamamlanacak",
-      en: "Route will be completed in admin",
-      de: "Route wird im Admin ergänzt",
-      ru: "Маршрут будет заполнен в админке",
-    },
-    tags: {
-      tr: ["Demo", "Yeni"],
-      en: ["Demo", "New"],
-      de: ["Demo", "Neu"],
-      ru: ["Демо", "Новый"],
-    },
-    featured: true,
+    durationDays: input.durationDays || 4,
+    durationNights: input.durationNights || 3,
+    departures: localizedList(input.departures, ["İstanbul"]),
+    transport: localizedText(input.transport, "Uçak / Otobüs"),
+    visa: localizedText(input.visa, "Tur koşullarına göre"),
+    route: localizedText(input.route, "Rota bilgisi satış danışmanı tarafından netleştirilir."),
+    tags: localizedList(input.tags, ["Yeni", "Öne çıkan"]),
+    itinerary: localizedItinerary(input.itinerary, defaultItinerary()),
+    included: localizedList(input.included, ["Danışmanlık", "Jolly yönlendirme", "Ön talep takibi"]),
+    excluded: localizedList(input.excluded, ["Kişisel harcamalar", "Ekstra hizmetler"]),
+    notes: localizedList(input.notes, ["Fiyat ve kontenjan satış danışmanı tarafından teyit edilir."]),
+    faqs: localizedFaqs(input.faqs, defaultFaqs()),
+    featured: input.featured ?? true,
     active: true,
     jollyUrl: input.jollyUrl || siteConfig.defaultJollyUrl,
     dates: [
@@ -394,12 +543,27 @@ export async function createDemoTour(input: {
 
 export async function updateDemoTour(input: {
   id: string;
-  title: string;
-  slug: string;
-  summary: string;
+  title: LocalizedStringInput;
+  slug: LocalizedStringInput;
+  summary: LocalizedStringInput;
+  description: LocalizedStringInput;
+  image: string;
   priceFrom: number;
   currency: Tour["currency"];
   categoryId: string;
+  durationDays: number;
+  durationNights: number;
+  departures: LocalizedStringInput;
+  transport: LocalizedStringInput;
+  visa: LocalizedStringInput;
+  route: LocalizedStringInput;
+  tags: LocalizedStringInput;
+  itinerary: LocalizedListInput;
+  included: LocalizedListInput;
+  excluded: LocalizedListInput;
+  notes: LocalizedListInput;
+  faqs: LocalizedListInput;
+  featured: boolean;
   jollyUrl: string;
   active: boolean;
 }) {
@@ -410,13 +574,27 @@ export async function updateDemoTour(input: {
     return null;
   }
 
-  const slug = slugify(input.slug || input.title);
-  tour.title.tr = input.title;
-  tour.slugs.tr = slug;
-  tour.summary.tr = input.summary;
+  tour.title = localizedText(input.title, tour.title);
+  tour.slugs = localizedSlugs(input.slug, tour.title);
+  tour.summary = localizedText(input.summary, tour.summary);
+  tour.description = localizedText(input.description, tour.description ?? tour.summary);
+  tour.image = input.image || tour.image;
   tour.priceFrom = input.priceFrom;
   tour.currency = input.currency;
   tour.categoryIds = [input.categoryId];
+  tour.durationDays = input.durationDays || tour.durationDays;
+  tour.durationNights = input.durationNights || tour.durationNights;
+  tour.departures = localizedList(input.departures, tour.departures.tr);
+  tour.transport = localizedText(input.transport, tour.transport.tr);
+  tour.visa = localizedText(input.visa, tour.visa.tr);
+  tour.route = localizedText(input.route, tour.route.tr);
+  tour.tags = localizedList(input.tags, tour.tags.tr);
+  tour.itinerary = localizedItinerary(input.itinerary, tour.itinerary ?? defaultItinerary());
+  tour.included = localizedList(input.included, tour.included ?? ["Danışmanlık"]);
+  tour.excluded = localizedList(input.excluded, tour.excluded ?? ["Kişisel harcamalar"]);
+  tour.notes = localizedList(input.notes, tour.notes ?? []);
+  tour.faqs = localizedFaqs(input.faqs, tour.faqs ?? defaultFaqs());
+  tour.featured = input.featured;
   tour.jollyUrl = input.jollyUrl || siteConfig.defaultJollyUrl;
   tour.active = input.active;
   tour.updatedAt = now();
@@ -444,7 +622,7 @@ export async function createDemoTourDate(input: {
   end: string;
   price: number;
   currency: Tour["currency"];
-  availability: string;
+  availability: LocalizedStringInput;
   jollyUrl: string;
 }) {
   const store = await readDemoStore();
@@ -460,12 +638,7 @@ export async function createDemoTourDate(input: {
     end: input.end,
     price: input.price,
     currency: input.currency,
-    availability: {
-      tr: input.availability,
-      en: input.availability,
-      de: input.availability,
-      ru: input.availability,
-    },
+    availability: localizedText(input.availability, "Sınırlı kontenjan"),
     jollyUrl: input.jollyUrl || tour.jollyUrl,
   };
 
@@ -482,7 +655,7 @@ export async function updateDemoTourDate(input: {
   end: string;
   price: number;
   currency: Tour["currency"];
-  availability: string;
+  availability: LocalizedStringInput;
   jollyUrl: string;
 }) {
   const store = await readDemoStore();
@@ -498,12 +671,7 @@ export async function updateDemoTourDate(input: {
     end: input.end,
     price: input.price,
     currency: input.currency,
-    availability: {
-      tr: input.availability,
-      en: input.availability,
-      de: input.availability,
-      ru: input.availability,
-    },
+    availability: localizedText(input.availability, date.availability),
     jollyUrl: input.jollyUrl || tour.jollyUrl,
   });
   tour.updatedAt = now();
@@ -543,34 +711,35 @@ export async function updateDemoSettings(input: {
 
 export async function createDemoManagedPage(input: {
   kind: DemoManagedPageKind;
-  title: string;
-  slug: string;
-  summary: string;
+  title: LocalizedStringInput;
+  slug: LocalizedStringInput;
+  summary: LocalizedStringInput;
+  seoTitle?: LocalizedStringInput;
+  seoDescription?: LocalizedStringInput;
+  canonical?: LocalizedStringInput;
+  ogImage?: string;
+  keywords?: string;
+  noIndex?: boolean;
 }) {
   const store = await readDemoStore();
   const timestamp = now();
-  const slug = slugify(input.slug || input.title);
+  const title = localizedText(input.title, "Yeni SEO sayfası");
+  const summary = localizedText(
+    input.summary,
+    "Admin panelden eklenen SEO landing sayfası.",
+  );
   const page: DemoManagedPage = {
     id: randomUUID(),
     kind: input.kind,
-    slugs: {
-      tr: slug,
-      en: `${slug}-en`,
-      de: `${slug}-de`,
-      ru: `${slug}-ru`,
-    },
-    title: {
-      tr: input.title,
-      en: `${input.title} EN`,
-      de: `${input.title} DE`,
-      ru: `${input.title} RU`,
-    },
-    summary: {
-      tr: input.summary,
-      en: input.summary,
-      de: input.summary,
-      ru: input.summary,
-    },
+    slugs: localizedSlugs(input.slug, title),
+    title,
+    summary,
+    seoTitle: localizedText(input.seoTitle, title.tr),
+    seoDescription: localizedText(input.seoDescription, summary.tr),
+    canonical: localizedText(input.canonical, ""),
+    ogImage: input.ogImage?.trim() ?? "",
+    keywords: localizedList(input.keywords, []).tr,
+    noIndex: Boolean(input.noIndex),
     active: true,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -584,9 +753,15 @@ export async function createDemoManagedPage(input: {
 export async function updateDemoManagedPage(input: {
   id: string;
   kind: DemoManagedPageKind;
-  title: string;
-  slug: string;
-  summary: string;
+  title: LocalizedStringInput;
+  slug: LocalizedStringInput;
+  summary: LocalizedStringInput;
+  seoTitle?: LocalizedStringInput;
+  seoDescription?: LocalizedStringInput;
+  canonical?: LocalizedStringInput;
+  ogImage?: string;
+  keywords?: string;
+  noIndex?: boolean;
   active: boolean;
 }) {
   const store = await readDemoStore();
@@ -597,9 +772,15 @@ export async function updateDemoManagedPage(input: {
   }
 
   page.kind = input.kind;
-  page.title.tr = input.title;
-  page.slugs.tr = slugify(input.slug || input.title);
-  page.summary.tr = input.summary;
+  page.title = localizedText(input.title, page.title);
+  page.slugs = localizedSlugs(input.slug, page.title);
+  page.summary = localizedText(input.summary, page.summary);
+  page.seoTitle = localizedText(input.seoTitle, page.title.tr);
+  page.seoDescription = localizedText(input.seoDescription, page.summary.tr);
+  page.canonical = localizedText(input.canonical, "");
+  page.ogImage = input.ogImage?.trim() ?? "";
+  page.keywords = localizedList(input.keywords, []).tr;
+  page.noIndex = Boolean(input.noIndex);
   page.active = input.active;
   page.updatedAt = now();
   await writeDemoStore(store);
@@ -811,12 +992,7 @@ export function demoTourToTour(demoTour: DemoTour): Tour {
     slugs: demoTour.slugs,
     title: demoTour.title,
     summary: demoTour.summary,
-    description: {
-      tr: demoTour.summary.tr,
-      en: demoTour.summary.en,
-      de: demoTour.summary.de,
-      ru: demoTour.summary.ru,
-    },
+    description: demoTour.description ?? demoTour.summary,
     image: demoTour.image,
     categoryIds: demoTour.categoryIds,
     campaignIds: demoTour.campaignIds,
@@ -832,80 +1008,11 @@ export function demoTourToTour(demoTour: DemoTour): Tour {
     tags: demoTour.tags,
     featured: demoTour.featured,
     jollyUrl: demoTour.jollyUrl,
-    itinerary: {
-      tr: [
-        {
-          day: "1. Gün",
-          title: "Program hazırlanıyor",
-          text: "Bu turun gün gün programı admin panelden tamamlanacak.",
-        },
-      ],
-      en: [
-        {
-          day: "Day 1",
-          title: "Program in progress",
-          text: "The day-by-day program will be completed from the admin panel.",
-        },
-      ],
-      de: [
-        {
-          day: "Tag 1",
-          title: "Programm in Bearbeitung",
-          text: "Das Tagesprogramm wird im Admin ergänzt.",
-        },
-      ],
-      ru: [
-        {
-          day: "День 1",
-          title: "Программа готовится",
-          text: "Программа по дням будет заполнена в админке.",
-        },
-      ],
-    },
-    included: {
-      tr: ["Danışmanlık", "Jolly yönlendirme", "Ön talep takibi"],
-      en: ["Consultation", "Jolly redirect", "Request tracking"],
-      de: ["Beratung", "Jolly-Weiterleitung", "Anfrageverfolgung"],
-      ru: ["Консультация", "Переход Jolly", "Отслеживание заявки"],
-    },
-    excluded: {
-      tr: ["Kişisel harcamalar", "Ekstra hizmetler"],
-      en: ["Personal expenses", "Extra services"],
-      de: ["Persönliche Ausgaben", "Zusatzleistungen"],
-      ru: ["Личные расходы", "Дополнительные услуги"],
-    },
-    notes: {
-      tr: ["Demo turdur; fiyat ve içerik gerçek Jolly linkiyle netleşir."],
-      en: ["Demo tour; price and content are finalized with the real Jolly link."],
-      de: ["Demo-Reise; Preis und Inhalt werden mit dem Jolly-Link finalisiert."],
-      ru: ["Демо-тур; цена и контент уточняются через реальную ссылку Jolly."],
-    },
-    faqs: {
-      tr: [
-        {
-          question: "Bu tur yayında mı?",
-          answer: "Demo modda yayındadır; gerçek içerik admin panelden tamamlanacaktır.",
-        },
-      ],
-      en: [
-        {
-          question: "Is this tour live?",
-          answer: "It is live in demo mode; real content will be completed in admin.",
-        },
-      ],
-      de: [
-        {
-          question: "Ist diese Reise live?",
-          answer: "Sie ist im Demo-Modus live; echte Inhalte folgen im Admin.",
-        },
-      ],
-      ru: [
-        {
-          question: "Тур опубликован?",
-          answer: "Он опубликован в демо-режиме; реальные данные добавляются в админке.",
-        },
-      ],
-    },
+    itinerary: demoTour.itinerary ?? defaultItinerary(),
+    included: demoTour.included ?? localizedList(undefined, ["Danışmanlık", "Jolly yönlendirme", "Ön talep takibi"]),
+    excluded: demoTour.excluded ?? localizedList(undefined, ["Kişisel harcamalar", "Ekstra hizmetler"]),
+    notes: demoTour.notes ?? localizedList(undefined, ["Demo turdur; fiyat ve içerik gerçek Jolly linkiyle netleşir."]),
+    faqs: demoTour.faqs ?? defaultFaqs(),
     dates:
       demoTour.dates.length > 0
         ? demoTour.dates
@@ -954,8 +1061,12 @@ function demoManagedPageToLandingPage(page: DemoManagedPage): LandingPage {
           "Эта SEO-страница создана в админ-панели. Детали будут расширены на следующем этапе контента.",
       ],
     },
-    seoTitle: page.title,
-    seoDescription: page.summary,
+    seoTitle: page.seoTitle,
+    seoDescription: page.seoDescription,
+    canonical: page.canonical,
+    ogImage: page.ogImage || undefined,
+    keywords: page.keywords,
+    noIndex: page.noIndex,
   };
 }
 
@@ -970,4 +1081,238 @@ function slugify(value: string) {
     .replaceAll("ç", "c")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function localizedText(
+  value: LocalizedStringInput | undefined,
+  fallback: string | Record<Locale, string>,
+) {
+  const fallbackByLocale =
+    typeof fallback === "string"
+      ? Object.fromEntries(locales.map((locale) => [locale, fallback]))
+      : fallback;
+
+  if (typeof value === "string" || value === undefined) {
+    const text = value?.trim();
+    const primaryText = text || fallbackByLocale.tr;
+    return Object.fromEntries(
+      locales.map((locale) => [locale, primaryText || fallbackByLocale[locale] || ""]),
+    ) as Record<Locale, string>;
+  }
+
+  return Object.fromEntries(
+    locales.map((locale) => [
+      locale,
+      value[locale]?.trim() || fallbackByLocale[locale] || fallbackByLocale.tr || "",
+    ]),
+  ) as Record<Locale, string>;
+}
+
+function localizedSlugs(
+  value: LocalizedStringInput | undefined,
+  fallbackTitle: Record<Locale, string>,
+) {
+  if (typeof value === "string" || value === undefined) {
+    const primarySlug = slugify(value || fallbackTitle.tr || "sayfa");
+    return Object.fromEntries(
+      locales.map((locale) => [locale, primarySlug || slugify(fallbackTitle[locale])]),
+    ) as Record<Locale, string>;
+  }
+
+  return Object.fromEntries(
+    locales.map((locale) => {
+      const source = value[locale]?.trim() || fallbackTitle[locale] || fallbackTitle.tr || "sayfa";
+      return [locale, slugify(source)];
+    }),
+  ) as Record<Locale, string>;
+}
+
+function localizedList(
+  value: LocalizedStringInput | undefined,
+  fallback: string[] | Record<Locale, string[]>,
+) {
+  const fallbackByLocale = Array.isArray(fallback)
+    ? Object.fromEntries(locales.map((locale) => [locale, fallback]))
+    : fallback;
+
+  if (typeof value === "string" || value === undefined) {
+    const items = splitList(value);
+    const primaryList = items.length ? items : fallbackByLocale.tr;
+    return Object.fromEntries(
+      locales.map((locale) => [
+        locale,
+        primaryList.length ? primaryList : fallbackByLocale[locale] || [],
+      ]),
+    ) as Record<Locale, string[]>;
+  }
+
+  return Object.fromEntries(
+    locales.map((locale) => {
+      const items = splitList(value[locale]);
+      return [
+        locale,
+        items.length ? items : fallbackByLocale[locale] || fallbackByLocale.tr || [],
+      ];
+    }),
+  ) as Record<Locale, string[]>;
+}
+
+function localizedItinerary(
+  value: LocalizedListInput | undefined,
+  fallback: Record<Locale, DemoItineraryItem[]>,
+) {
+  if (typeof value === "string" || value === undefined) {
+    const items = splitItinerary(value);
+    const primaryItems = items.length ? items : fallback.tr;
+    return Object.fromEntries(
+      locales.map((locale) => [
+        locale,
+        primaryItems.length ? primaryItems : fallback[locale] || [],
+      ]),
+    ) as Record<Locale, DemoItineraryItem[]>;
+  }
+
+  return Object.fromEntries(
+    locales.map((locale) => {
+      const items = splitItinerary(value[locale]);
+      return [locale, items.length ? items : fallback[locale] || fallback.tr || []];
+    }),
+  ) as Record<Locale, DemoItineraryItem[]>;
+}
+
+function localizedFaqs(
+  value: LocalizedListInput | undefined,
+  fallback: Record<Locale, DemoFaqItem[]>,
+) {
+  if (typeof value === "string" || value === undefined) {
+    const items = splitFaqs(value);
+    const primaryItems = items.length ? items : fallback.tr;
+    return Object.fromEntries(
+      locales.map((locale) => [
+        locale,
+        primaryItems.length ? primaryItems : fallback[locale] || [],
+      ]),
+    ) as Record<Locale, DemoFaqItem[]>;
+  }
+
+  return Object.fromEntries(
+    locales.map((locale) => {
+      const items = splitFaqs(value[locale]);
+      return [locale, items.length ? items : fallback[locale] || fallback.tr || []];
+    }),
+  ) as Record<Locale, DemoFaqItem[]>;
+}
+
+function splitItinerary(value: string | undefined) {
+  return (
+    value
+      ?.split(/\n+/)
+      .map((line, index) => {
+        const [day, title, ...textParts] = line.split("|").map((part) => part.trim());
+        const text = textParts.join(" | ");
+
+        if (!day && !title && !text) {
+          return null;
+        }
+
+        return {
+          day: day || `${index + 1}. Gün`,
+          title: title || "Program",
+          text: text || title || day || "Program detayı",
+        };
+      })
+      .filter(Boolean) ?? []
+  ) as DemoItineraryItem[];
+}
+
+function splitFaqs(value: string | undefined) {
+  return (
+    value
+      ?.split(/\n+/)
+      .map((line) => {
+        const [question, ...answerParts] = line.split("|").map((part) => part.trim());
+        const answer = answerParts.join(" | ");
+
+        if (!question && !answer) {
+          return null;
+        }
+
+        return {
+          question: question || "Soru",
+          answer: answer || "Yanıt admin panelden tamamlanacak.",
+        };
+      })
+      .filter(Boolean) ?? []
+  ) as DemoFaqItem[];
+}
+
+function defaultItinerary() {
+  return {
+    tr: [
+      {
+        day: "1. Gün",
+        title: "Program hazırlanıyor",
+        text: "Bu turun gün gün programı admin panelden tamamlanacak.",
+      },
+    ],
+    en: [
+      {
+        day: "Day 1",
+        title: "Program in progress",
+        text: "The day-by-day program will be completed from the admin panel.",
+      },
+    ],
+    de: [
+      {
+        day: "Tag 1",
+        title: "Programm in Bearbeitung",
+        text: "Das Tagesprogramm wird im Admin ergänzt.",
+      },
+    ],
+    ru: [
+      {
+        day: "День 1",
+        title: "Программа готовится",
+        text: "Программа по дням будет заполнена в админке.",
+      },
+    ],
+  } satisfies Record<Locale, DemoItineraryItem[]>;
+}
+
+function defaultFaqs() {
+  return {
+    tr: [
+      {
+        question: "Bu tur yayında mı?",
+        answer: "Demo modda yayındadır; gerçek içerik admin panelden tamamlanacaktır.",
+      },
+    ],
+    en: [
+      {
+        question: "Is this tour live?",
+        answer: "It is live in demo mode; real content will be completed in admin.",
+      },
+    ],
+    de: [
+      {
+        question: "Ist diese Reise live?",
+        answer: "Sie ist im Demo-Modus live; echte Inhalte folgen im Admin.",
+      },
+    ],
+    ru: [
+      {
+        question: "Тур опубликован?",
+        answer: "Он опубликован в демо-режиме; реальные данные добавляются в админке.",
+      },
+    ],
+  } satisfies Record<Locale, DemoFaqItem[]>;
+}
+
+function splitList(value: string | undefined) {
+  return (
+    value
+      ?.split(/[\n,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean) ?? []
+  );
 }

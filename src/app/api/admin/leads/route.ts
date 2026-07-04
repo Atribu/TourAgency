@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/admin-auth";
 import { readDemoStore, updateDemoLeadStatus } from "@/lib/demo-store";
 import type { DemoLeadStatus } from "@/lib/demo-types";
 
@@ -13,11 +14,29 @@ const statuses: DemoLeadStatus[] = [
 ];
 
 export async function GET() {
+  const session = await getAdminSession();
+
+  if (!session) {
+    return NextResponse.json(
+      { ok: false, message: "unauthorized" },
+      { status: 401 },
+    );
+  }
+
   const store = await readDemoStore();
   return NextResponse.json({ ok: true, leads: store.leads });
 }
 
 export async function PATCH(request: Request) {
+  const session = await getAdminSession();
+
+  if (!session) {
+    return NextResponse.json(
+      { ok: false, message: "unauthorized" },
+      { status: 401 },
+    );
+  }
+
   const body = await request.json().catch(() => null);
 
   if (!body?.id || !statuses.includes(body.status)) {

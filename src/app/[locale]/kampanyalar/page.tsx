@@ -35,7 +35,7 @@ export async function generateMetadata({
   const copy = t(locale);
 
   return {
-    title: `${copy.nav.campaigns} | TourAgency`,
+    title: `${copy.nav.campaigns} | book to tour`,
     description: copy.sections.campaigns,
   };
 }

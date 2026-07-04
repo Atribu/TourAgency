@@ -23,7 +23,7 @@ export function trackEvent(name: string, payload: TrackingPayload = {}) {
   }
 
   window.dispatchEvent(
-    new CustomEvent("touragency:track", {
+    new CustomEvent("booktotour:track", {
       detail: { name, payload, at: new Date().toISOString() },
     }),
   );
