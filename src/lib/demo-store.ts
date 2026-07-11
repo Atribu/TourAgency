@@ -238,6 +238,22 @@ function normalizeStore(store: Partial<DemoStore>): DemoStore {
     tours: (store.tours ?? []).map((tour) => ({
       ...tour,
       description: tour.description ?? tour.summary,
+      gallery: tour.gallery?.length ? tour.gallery : defaultGallery(tour.image),
+      salesBadges:
+        tour.salesBadges ??
+        localizedList(undefined, ["Jolly ödeme yönlendirmesi", "Danışman destekli rezervasyon"]),
+      highlights:
+        tour.highlights ??
+        localizedList(undefined, ["Net rota anlatımı", "Tarih ve kontenjan takibi", "WhatsApp destek"]),
+      pickupPoints:
+        tour.pickupPoints ??
+        localizedList(undefined, ["İstanbul merkez hareket", "Ek hareket noktaları danışmanla netleşir"]),
+      cancellationPolicy:
+        tour.cancellationPolicy ??
+        localizedText(
+          undefined,
+          "İptal, değişiklik ve kesin ödeme koşulları Jolly / satış danışmanı sürecinde teyit edilir.",
+        ),
       itinerary: tour.itinerary ?? defaultItinerary(),
       included: tour.included ?? localizedList(undefined, ["Danışmanlık", "Jolly yönlendirme"]),
       excluded: tour.excluded ?? localizedList(undefined, ["Kişisel harcamalar"]),
@@ -476,6 +492,11 @@ export async function createDemoTour(input: {
   excluded?: LocalizedListInput;
   notes?: LocalizedListInput;
   faqs?: LocalizedListInput;
+  gallery?: string;
+  salesBadges?: LocalizedListInput;
+  highlights?: LocalizedListInput;
+  pickupPoints?: LocalizedListInput;
+  cancellationPolicy?: LocalizedStringInput;
   featured?: boolean;
   jollyUrl?: string;
 }) {
@@ -496,6 +517,9 @@ export async function createDemoTour(input: {
     image:
       input.image?.trim() ||
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80",
+    gallery: splitMediaList(input.gallery).length
+      ? splitMediaList(input.gallery)
+      : defaultGallery(input.image),
     categoryIds: [input.categoryId],
     campaignIds: ["early-booking"],
     destinationIds: [],
@@ -508,6 +532,24 @@ export async function createDemoTour(input: {
     visa: localizedText(input.visa, "Tur koşullarına göre"),
     route: localizedText(input.route, "Rota bilgisi satış danışmanı tarafından netleştirilir."),
     tags: localizedList(input.tags, ["Yeni", "Öne çıkan"]),
+    salesBadges: localizedList(input.salesBadges, [
+      "Jolly ödeme yönlendirmesi",
+      "Danışman destekli rezervasyon",
+      "Güvenli ön talep",
+    ]),
+    highlights: localizedList(input.highlights, [
+      "Tarih ve kontenjan takibi",
+      "Net dahil / hariç bilgisi",
+      "WhatsApp hızlı teklif",
+    ]),
+    pickupPoints: localizedList(input.pickupPoints, [
+      "İstanbul merkez hareket",
+      "Ek hareket noktaları danışmanla netleşir",
+    ]),
+    cancellationPolicy: localizedText(
+      input.cancellationPolicy,
+      "İptal, değişiklik ve kesin ödeme koşulları Jolly / satış danışmanı sürecinde teyit edilir.",
+    ),
     itinerary: localizedItinerary(input.itinerary, defaultItinerary()),
     included: localizedList(input.included, ["Danışmanlık", "Jolly yönlendirme", "Ön talep takibi"]),
     excluded: localizedList(input.excluded, ["Kişisel harcamalar", "Ekstra hizmetler"]),
@@ -563,6 +605,11 @@ export async function updateDemoTour(input: {
   excluded: LocalizedListInput;
   notes: LocalizedListInput;
   faqs: LocalizedListInput;
+  gallery: string;
+  salesBadges: LocalizedListInput;
+  highlights: LocalizedListInput;
+  pickupPoints: LocalizedListInput;
+  cancellationPolicy: LocalizedStringInput;
   featured: boolean;
   jollyUrl: string;
   active: boolean;
@@ -579,6 +626,9 @@ export async function updateDemoTour(input: {
   tour.summary = localizedText(input.summary, tour.summary);
   tour.description = localizedText(input.description, tour.description ?? tour.summary);
   tour.image = input.image || tour.image;
+  tour.gallery = splitMediaList(input.gallery).length
+    ? splitMediaList(input.gallery)
+    : defaultGallery(tour.image);
   tour.priceFrom = input.priceFrom;
   tour.currency = input.currency;
   tour.categoryIds = [input.categoryId];
@@ -589,6 +639,14 @@ export async function updateDemoTour(input: {
   tour.visa = localizedText(input.visa, tour.visa.tr);
   tour.route = localizedText(input.route, tour.route.tr);
   tour.tags = localizedList(input.tags, tour.tags.tr);
+  tour.salesBadges = localizedList(input.salesBadges, tour.salesBadges ?? []);
+  tour.highlights = localizedList(input.highlights, tour.highlights ?? []);
+  tour.pickupPoints = localizedList(input.pickupPoints, tour.pickupPoints ?? []);
+  tour.cancellationPolicy = localizedText(
+    input.cancellationPolicy,
+    tour.cancellationPolicy ??
+      "İptal, değişiklik ve kesin ödeme koşulları Jolly / satış danışmanı sürecinde teyit edilir.",
+  );
   tour.itinerary = localizedItinerary(input.itinerary, tour.itinerary ?? defaultItinerary());
   tour.included = localizedList(input.included, tour.included ?? ["Danışmanlık"]);
   tour.excluded = localizedList(input.excluded, tour.excluded ?? ["Kişisel harcamalar"]);
@@ -994,6 +1052,7 @@ export function demoTourToTour(demoTour: DemoTour): Tour {
     summary: demoTour.summary,
     description: demoTour.description ?? demoTour.summary,
     image: demoTour.image,
+    gallery: demoTour.gallery?.length ? demoTour.gallery : defaultGallery(demoTour.image),
     categoryIds: demoTour.categoryIds,
     campaignIds: demoTour.campaignIds,
     destinationIds: demoTour.destinationIds,
@@ -1006,6 +1065,21 @@ export function demoTourToTour(demoTour: DemoTour): Tour {
     visa: demoTour.visa,
     route: demoTour.route,
     tags: demoTour.tags,
+    salesBadges:
+      demoTour.salesBadges ??
+      localizedList(undefined, ["Jolly ödeme yönlendirmesi", "Danışman destekli rezervasyon"]),
+    highlights:
+      demoTour.highlights ??
+      localizedList(undefined, ["Net rota anlatımı", "Tarih ve kontenjan takibi"]),
+    pickupPoints:
+      demoTour.pickupPoints ??
+      localizedList(undefined, ["Hareket noktaları danışmanla netleşir"]),
+    cancellationPolicy:
+      demoTour.cancellationPolicy ??
+      localizedText(
+        undefined,
+        "İptal, değişiklik ve kesin ödeme koşulları Jolly / satış danışmanı sürecinde teyit edilir.",
+      ),
     featured: demoTour.featured,
     jollyUrl: demoTour.jollyUrl,
     itinerary: demoTour.itinerary ?? defaultItinerary(),
@@ -1244,6 +1318,26 @@ function splitFaqs(value: string | undefined) {
       })
       .filter(Boolean) ?? []
   ) as DemoFaqItem[];
+}
+
+function splitMediaList(value: string | undefined) {
+  return (
+    value
+      ?.split(/[\n,]+/)
+      .map((item) => item.trim())
+      .filter((item) => item.startsWith("http")) ?? []
+  );
+}
+
+function defaultGallery(image?: string) {
+  return [
+    image,
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80",
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80",
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1400&q=80",
+  ]
+    .filter(Boolean)
+    .filter((item, index, list) => list.indexOf(item) === index) as string[];
 }
 
 function defaultItinerary() {

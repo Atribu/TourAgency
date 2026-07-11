@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LeadForm } from "@/components/LeadForm";
@@ -84,6 +85,15 @@ export default async function TourDetailPage({ params }: PageProps) {
     readDemoStore(),
   ]);
   const settings = store.settings;
+  const detailCopy = getDetailCopy(locale);
+  const gallery = (tour.gallery?.length ? tour.gallery : [tour.image]).slice(0, 4);
+  const salesBadges =
+    tour.salesBadges?.[locale] ?? detailCopy.salesBadges;
+  const highlights = tour.highlights?.[locale] ?? detailCopy.highlights;
+  const pickupPoints = tour.pickupPoints?.[locale] ?? detailCopy.pickupPoints;
+  const cancellationPolicy =
+    tour.cancellationPolicy?.[locale] ?? detailCopy.cancellationPolicy;
+  const nearestDate = tour.dates[0];
   const similarTours = allTours
     .filter((item) => item.id !== tour.id)
     .filter((item) =>
@@ -147,8 +157,35 @@ export default async function TourDetailPage({ params }: PageProps) {
         </div>
       </section>
 
+      <section className="border-b border-black/10 bg-white">
+        <div className="mx-auto grid max-w-7xl gap-3 px-5 py-5 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:px-10">
+          {salesBadges.map((item) => (
+            <SalesPoint eyebrow={detailCopy.assurance} key={item} label={item} />
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_380px] lg:px-10">
         <div className="grid gap-8">
+          <section className="grid gap-3 sm:grid-cols-2">
+            {gallery.map((image, index) => (
+              <div
+                className={index === 0 ? "relative min-h-72 overflow-hidden border border-black/10 sm:col-span-2" : "relative min-h-48 overflow-hidden border border-black/10"}
+                key={`${image}-${index}`}
+              >
+                <Image
+                  alt={`${tour.title[locale]} ${index + 1}`}
+                  className="object-cover"
+                  fill
+                  priority={index === 0}
+                  sizes={index === 0 ? "(min-width: 1024px) 760px, 100vw" : "(min-width: 1024px) 380px, 100vw"}
+                  src={image}
+                  unoptimized
+                />
+              </div>
+            ))}
+          </section>
+
           <ContentPanel title={copy.sections.overview}>
             <p className="leading-8 text-[var(--color-muted)]">
               {tour.description[locale]}
@@ -156,6 +193,13 @@ export default async function TourDetailPage({ params }: PageProps) {
             <p className="mt-4 font-bold text-[var(--color-ink)]">
               {copy.labels.route}: {tour.route[locale]}
             </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {highlights.map((item) => (
+                <div className="border border-black/10 bg-[var(--color-sand)] p-3 text-sm font-bold" key={item}>
+                  {item}
+                </div>
+              ))}
+            </div>
           </ContentPanel>
 
           <ContentPanel title={copy.sections.itinerary}>
@@ -178,58 +222,69 @@ export default async function TourDetailPage({ params }: PageProps) {
           </ContentPanel>
 
           <ContentPanel title={copy.sections.dates}>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[680px] border-collapse text-left text-sm">
-                <thead>
-                  <tr className="border-b border-black/10 bg-[var(--color-sand)]">
-                    <th className="p-3">{copy.labels.date}</th>
-                    <th className="p-3">{copy.labels.priceFrom}</th>
-                    <th className="p-3">{copy.labels.availability}</th>
-                    <th className="p-3">Jolly</th>
-                    <th className="p-3">{copy.actions.request}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tour.dates.map((date) => (
-                    <tr className="border-b border-black/10" key={date.start}>
-                      <td className="p-3 font-bold">
-                        {date.start} / {date.end}
-                      </td>
-                      <td className="p-3">
-                        {formatPrice(date.price, date.currency)}
-                      </td>
-                      <td className="p-3">{date.availability[locale]}</td>
-                      <td className="p-3">
-                        <TrackedOutboundLink
-                          className="font-black text-[var(--color-coral)]"
-                          eventName={trackingEvents.jollyClick}
-                          href={date.jollyUrl ?? tour.jollyUrl}
-                          payload={{
-                            dateStart: date.start,
-                            locale,
-                            source: "date_table",
-                            tourId: tour.id,
-                            tourTitle: tour.title[locale],
-                          }}
-                          rel="noopener noreferrer sponsored"
-                          target="_blank"
-                        >
-                          {copy.actions.jolly}
-                        </TrackedOutboundLink>
-                      </td>
-                      <td className="p-3">
-                        <Link
-                          className="font-black text-[var(--color-teal)]"
-                          href={`/${locale}/${getLeadSlug(locale)}`}
-                        >
-                          {copy.actions.request}
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-3">
+              {tour.dates.map((date) => (
+                <div
+                  className="grid gap-3 border border-black/10 bg-[var(--color-sand)] p-4 md:grid-cols-[1fr_auto_auto]"
+                  key={date.start}
+                >
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--color-muted)]">
+                      {copy.labels.date}
+                    </p>
+                    <p className="mt-1 font-black">{date.start} / {date.end}</p>
+                    <p className="mt-1 text-sm text-[var(--color-muted)]">
+                      {date.availability[locale]}
+                    </p>
+                  </div>
+                  <div className="md:text-right">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--color-muted)]">
+                      {copy.labels.priceFrom}
+                    </p>
+                    <p className="mt-1 font-black">
+                      {formatPrice(date.price, date.currency)}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 md:justify-end">
+                    <TrackedOutboundLink
+                      className="button-secondary !min-h-10 !border-black/15 !px-3 !text-[var(--color-ink)]"
+                      eventName={trackingEvents.jollyClick}
+                      href={date.jollyUrl ?? tour.jollyUrl}
+                      payload={{
+                        dateStart: date.start,
+                        locale,
+                        source: "date_card",
+                        tourId: tour.id,
+                        tourTitle: tour.title[locale],
+                      }}
+                      rel="noopener noreferrer sponsored"
+                      target="_blank"
+                    >
+                      {copy.actions.jolly}
+                    </TrackedOutboundLink>
+                    <Link
+                      className="button-primary !min-h-10 !px-3"
+                      href={`/${locale}/${getLeadSlug(locale)}`}
+                    >
+                      {copy.actions.request}
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
+          </ContentPanel>
+
+          <ContentPanel title={detailCopy.pickupTitle}>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {pickupPoints.map((item) => (
+                <div className="border border-black/10 bg-[var(--color-sand)] p-3 text-sm font-bold" key={item}>
+                  {item}
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 border border-black/10 bg-white p-4 text-sm leading-6 text-[var(--color-muted)]">
+              {cancellationPolicy}
+            </p>
           </ContentPanel>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -263,6 +318,17 @@ export default async function TourDetailPage({ params }: PageProps) {
             <p className="mt-2 text-3xl font-black">
               {formatPrice(tour.priceFrom, tour.currency)}
             </p>
+            {nearestDate ? (
+              <div className="mt-4 border border-black/10 bg-[var(--color-sand)] p-3 text-sm">
+                <p className="font-black">{detailCopy.nearestDate}</p>
+                <p className="mt-1 text-[var(--color-muted)]">
+                  {nearestDate.start} / {nearestDate.end}
+                </p>
+                <p className="mt-1 font-bold text-[var(--color-coral)]">
+                  {nearestDate.availability[locale]}
+                </p>
+              </div>
+            ) : null}
             <div className="mt-5 grid gap-3">
               <Link className="button-primary" href={`/${locale}/${getLeadSlug(locale)}`}>
                 {copy.actions.request}
@@ -338,6 +404,17 @@ function Meta({ label, value }: { label: string; value: string }) {
   );
 }
 
+function SalesPoint({ eyebrow, label }: { eyebrow: string; label: string }) {
+  return (
+    <div className="border border-black/10 bg-[var(--color-sand)] p-4">
+      <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--color-coral)]">
+        {eyebrow}
+      </p>
+      <p className="mt-1 text-sm font-black text-[var(--color-ink)]">{label}</p>
+    </div>
+  );
+}
+
 function ContentPanel({
   title,
   children,
@@ -379,4 +456,97 @@ function getLeadSlug(locale: Locale) {
 function getWhatsappHref(value?: string) {
   const digits = value?.replace(/\D/g, "");
   return digits ? `https://wa.me/${digits}` : siteConfig.whatsappHref;
+}
+
+function getDetailCopy(locale: Locale) {
+  return {
+    tr: {
+      assurance: "Güven",
+      cancellationPolicy:
+        "İptal, değişiklik ve kesin ödeme koşulları Jolly / satış danışmanı sürecinde teyit edilir.",
+      highlights: [
+        "Tarih ve kontenjan takibi",
+        "WhatsApp hızlı teklif",
+        "Net dahil / hariç anlatımı",
+      ],
+      nearestDate: "En yakın hareket",
+      pickupPoints: [
+        "Hareket noktaları danışmanla netleşir",
+        "Ek kalkış seçenekleri talebe göre kontrol edilir",
+      ],
+      pickupTitle: "Hareket Noktaları ve Güvence",
+      salesBadges: [
+        "Jolly ödeme yönlendirmesi",
+        "Danışman destekli rezervasyon",
+        "Güvenli ön talep",
+        "4 dilde iletişim",
+      ],
+    },
+    en: {
+      assurance: "Trust",
+      cancellationPolicy:
+        "Cancellation, change and final payment terms are confirmed during the Jolly / consultant process.",
+      highlights: [
+        "Date and availability follow-up",
+        "Fast WhatsApp quote",
+        "Clear included / excluded details",
+      ],
+      nearestDate: "Nearest departure",
+      pickupPoints: [
+        "Pickup points are confirmed with the consultant",
+        "Extra departure options are checked on request",
+      ],
+      pickupTitle: "Pickup Points and Assurance",
+      salesBadges: [
+        "Jolly payment redirection",
+        "Consultant-assisted booking",
+        "Secure request flow",
+        "4-language communication",
+      ],
+    },
+    de: {
+      assurance: "Vertrauen",
+      cancellationPolicy:
+        "Storno-, Änderungs- und Zahlungsbedingungen werden im Jolly-/Beratungsprozess bestätigt.",
+      highlights: [
+        "Termin- und Verfügbarkeitsprüfung",
+        "Schnelles WhatsApp-Angebot",
+        "Klare Inklusiv-/Exklusivleistungen",
+      ],
+      nearestDate: "Nächste Abfahrt",
+      pickupPoints: [
+        "Abfahrtsorte werden mit der Beratung bestätigt",
+        "Weitere Optionen werden auf Anfrage geprüft",
+      ],
+      pickupTitle: "Abfahrtsorte und Sicherheit",
+      salesBadges: [
+        "Jolly-Zahlungsweiterleitung",
+        "Buchung mit Beratung",
+        "Sichere Anfrage",
+        "Kommunikation in 4 Sprachen",
+      ],
+    },
+    ru: {
+      assurance: "Гарантия",
+      cancellationPolicy:
+        "Условия отмены, изменений и финальной оплаты подтверждаются через Jolly / консультанта.",
+      highlights: [
+        "Контроль дат и мест",
+        "Быстрое предложение в WhatsApp",
+        "Понятно включено / не включено",
+      ],
+      nearestDate: "Ближайший выезд",
+      pickupPoints: [
+        "Места отправления подтверждаются консультантом",
+        "Дополнительные варианты проверяются по запросу",
+      ],
+      pickupTitle: "Места отправления и гарантии",
+      salesBadges: [
+        "Оплата через Jolly",
+        "Бронирование с консультантом",
+        "Безопасная заявка",
+        "Связь на 4 языках",
+      ],
+    },
+  }[locale];
 }

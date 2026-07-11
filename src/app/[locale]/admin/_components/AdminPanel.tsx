@@ -206,6 +206,10 @@ function tourLanguageScore(tour: Tour) {
     tour.description,
     tour.route,
     tour.tags,
+    tour.salesBadges,
+    tour.highlights,
+    tour.pickupPoints,
+    tour.cancellationPolicy,
     tour.itinerary,
     tour.included,
     tour.excluded,
@@ -339,16 +343,21 @@ async function createTourAction(formData: FormData) {
       durationDays: Number(formData.get("durationDays") ?? 4),
       durationNights: Number(formData.get("durationNights") ?? 3),
       featured: formData.get("featured") === "on",
+      gallery: String(formData.get("gallery") ?? ""),
       image,
+      cancellationPolicy: readLocalizedFormText(formData, "cancellationPolicy"),
       description: readLocalizedFormText(formData, "description"),
       excluded: readLocalizedFormText(formData, "excluded"),
       faqs: readLocalizedFormText(formData, "faqs"),
+      highlights: readLocalizedFormText(formData, "highlights"),
       included: readLocalizedFormText(formData, "included"),
       itinerary: readLocalizedFormText(formData, "itinerary"),
       jollyUrl,
       notes: readLocalizedFormText(formData, "notes"),
+      pickupPoints: readLocalizedFormText(formData, "pickupPoints"),
       priceFrom,
       route: readLocalizedFormText(formData, "route"),
+      salesBadges: readLocalizedFormText(formData, "salesBadges"),
       slug,
       summary,
       tags: readLocalizedFormText(formData, "tags"),
@@ -432,6 +441,7 @@ async function updateTourAction(formData: FormData) {
     summary: readLocalizedFormText(formData, "summary"),
     description: readLocalizedFormText(formData, "description"),
     image: String(formData.get("image") ?? ""),
+    gallery: String(formData.get("gallery") ?? ""),
     priceFrom: Number(formData.get("priceFrom") ?? 0),
     currency: String(formData.get("currency") ?? "TRY") as "TRY" | "EUR" | "USD",
     categoryId: String(formData.get("categoryId") ?? ""),
@@ -442,6 +452,10 @@ async function updateTourAction(formData: FormData) {
     visa: readLocalizedFormText(formData, "visa"),
     route: readLocalizedFormText(formData, "route"),
     tags: readLocalizedFormText(formData, "tags"),
+    salesBadges: readLocalizedFormText(formData, "salesBadges"),
+    highlights: readLocalizedFormText(formData, "highlights"),
+    pickupPoints: readLocalizedFormText(formData, "pickupPoints"),
+    cancellationPolicy: readLocalizedFormText(formData, "cancellationPolicy"),
     itinerary: readLocalizedFormText(formData, "itinerary"),
     included: readLocalizedFormText(formData, "included"),
     excluded: readLocalizedFormText(formData, "excluded"),
@@ -679,30 +693,38 @@ export default async function AdminPanel({
   ]);
   const databaseStatus = getDatabaseStatus();
   const leads = store.leads;
-  const visibleLeads = leads.filter((lead) => {
-    const matchesStatus = !statusFilter || lead.status === statusFilter;
-    const matchesChannel = !channelFilter || lead.channel === channelFilter;
-    return (
-      matchesStatus &&
-      matchesChannel &&
-      textMatches(query, [
-        lead.name,
-        lead.phone,
-        lead.email,
-        lead.tourTitle,
-        lead.note,
-        lead.sourcePath,
-        lead.owner,
-      ])
-    );
-  });
+  const today = new Date().toISOString().slice(0, 10);
+  const visibleLeads = leads
+    .filter((lead) => {
+      const matchesStatus = !statusFilter || lead.status === statusFilter;
+      const matchesChannel = !channelFilter || lead.channel === channelFilter;
+      return (
+        matchesStatus &&
+        matchesChannel &&
+        textMatches(query, [
+          lead.name,
+          lead.phone,
+          lead.email,
+          lead.tourTitle,
+          lead.note,
+          lead.sourcePath,
+          lead.owner,
+        ])
+      );
+    })
+    .sort((left, right) => {
+      const leftDue = left.nextFollowUpAt && left.nextFollowUpAt <= today ? 1 : 0;
+      const rightDue = right.nextFollowUpAt && right.nextFollowUpAt <= today ? 1 : 0;
+      if (leftDue !== rightDue) return rightDue - leftDue;
+      return leadScore(right) - leadScore(left);
+    });
   const leadCount = leads.length;
   const soldLeads = leads.filter((lead) => lead.status === "Satışa döndü").length;
   const conversionRate = leadCount ? Math.round((soldLeads / leadCount) * 100) : 0;
-  const today = new Date().toISOString().slice(0, 10);
   const dueFollowUps = leads.filter(
     (lead) => lead.nextFollowUpAt && lead.nextFollowUpAt <= today,
   ).length;
+  const highScoreLeads = leads.filter((lead) => leadScore(lead) >= 82).length;
   const whatsappLeads = leads.filter((lead) => lead.channel === "WhatsApp").length;
   const utmLeads = leads.filter((lead) => lead.sourcePath.includes("utm_")).length;
   const tourViewEvents = store.events.filter((event) => event.name === "tour_view");
@@ -731,6 +753,17 @@ export default async function AdminPanel({
     ? Math.round((Math.max(formEvents, leads.length) / tourViews) * 100)
     : 0;
   const jollyClickRate = tourViews ? Math.round((jollyClicks / tourViews) * 100) : 0;
+  const mediaReadyTours = allTours.filter(
+    (tour) =>
+      tour.image &&
+      ((tour.gallery?.length ?? 0) >= 3 ||
+        !store.tours.some((demoTour) => demoTour.id === tour.id)),
+  ).length;
+  const salesContentReadyTours = allTours.filter(
+    (tour) =>
+      (tour.highlights?.[locale]?.length ?? 0) >= 2 &&
+      (tour.salesBadges?.[locale]?.length ?? 0) >= 2,
+  ).length;
   const eventsByName = Array.from(
     store.events.reduce((map, event) => {
       map.set(event.name, (map.get(event.name) ?? 0) + 1);
@@ -806,6 +839,11 @@ export default async function AdminPanel({
       description: "Tur, landing, canonical ve sitemap üretimi kontrol edildi.",
       label: "SEO altyapısı",
       ready: store.managedPages.length + allLandingPages.length > 0,
+    },
+    {
+      description: "Tur detaylarında kapak/galeri görselleri ve satış vurguları hazır olmalı.",
+      label: "Medya ve satış içeriği",
+      ready: mediaReadyTours === allTours.length && salesContentReadyTours > 0,
     },
     {
       description: "Ön talep formu ve CRM pipeline demo store üzerinden çalışıyor.",
@@ -985,6 +1023,22 @@ export default async function AdminPanel({
   const seoActionItems = allSeoPreviewPages
     .filter((page) => page.issues.length)
     .slice(0, 5);
+  const seoOpportunities = [...categories, ...campaigns, ...destinations]
+    .map((page) => ({
+      keyword: `${page.title.tr.toLocaleLowerCase("tr")} ${page.kind === "destination" ? "tur programı" : "tur fiyatları"}`,
+      path:
+        page.kind === "campaign"
+          ? `/${locale}/kampanyalar/${page.slugs[locale]}`
+          : `/${locale}/${page.slugs[locale]}`,
+      priority:
+        page.kind === "campaign"
+          ? "Sezon"
+          : page.kind === "destination"
+            ? "Rota"
+            : "Kategori",
+      title: page.title[locale],
+    }))
+    .slice(0, 8);
   const visibleContacts = store.contacts.filter((contact) =>
     textMatches(query, [
       contact.name,
@@ -1084,41 +1138,60 @@ export default async function AdminPanel({
 
           <div className="grid gap-4 px-4 py-4 xl:px-5">
             {section === "dashboard" ? (
-              <section
-                className="scroll-mt-24 grid gap-4 md:grid-cols-2 2xl:grid-cols-4"
-                id="dashboard"
-              >
-                <MetricCard
-                  accent="coral"
-                  label="Aktif Tur"
-                  sub="Katalog + eklenen turlar"
-                  value={String(allTours.length)}
-                />
-                <MetricCard
-                  accent="teal"
-                  label="Ön Talep"
-                  sub="Dosya tabanlı kaydediliyor"
-                  value={String(leadCount)}
-                />
-                <MetricCard
-                  accent="gold"
-                  label="Dönüşüm"
-                  sub="Satışa dönen talep oranı"
-                  value={`%${conversionRate}`}
-                />
-                <MetricCard
-                  accent="ink"
-                  label="SEO Sayfası"
-                  sub="Hazır + admin içerikleri"
-                  value={String(managedPageCount)}
-                />
-                <MetricCard
-                  accent={databaseStatus.mode === "demo" ? "gold" : "teal"}
-                  label="Veri Kaynağı"
-                  sub={databaseStatus.message}
-                  value={databaseStatus.mode === "demo" ? "Demo" : "SQL"}
-                />
-              </section>
+              <>
+                <section
+                  className="scroll-mt-24 grid gap-4 md:grid-cols-2 2xl:grid-cols-4"
+                  id="dashboard"
+                >
+                  <MetricCard
+                    accent="coral"
+                    label="Aktif Tur"
+                    sub="Katalog + eklenen turlar"
+                    value={String(allTours.length)}
+                  />
+                  <MetricCard
+                    accent="teal"
+                    label="Ön Talep"
+                    sub="Dosya tabanlı kaydediliyor"
+                    value={String(leadCount)}
+                  />
+                  <MetricCard
+                    accent="gold"
+                    label="Dönüşüm"
+                    sub="Satışa dönen talep oranı"
+                    value={`%${conversionRate}`}
+                  />
+                  <MetricCard
+                    accent="ink"
+                    label="SEO Sayfası"
+                    sub="Hazır + admin içerikleri"
+                    value={String(managedPageCount)}
+                  />
+                  <MetricCard
+                    accent={databaseStatus.mode === "demo" ? "gold" : "teal"}
+                    label="Veri Kaynağı"
+                    sub={databaseStatus.message}
+                    value={databaseStatus.mode === "demo" ? "Demo" : "SQL"}
+                  />
+                </section>
+                <section className="grid gap-4 xl:grid-cols-3">
+                  <Panel eyebrow="Medya" title="Görsel ve İçerik Sağlığı">
+                    <ReportRow label="Galeri / kapak hazır tur" value={`${mediaReadyTours}/${allTours.length}`} />
+                    <ReportRow label="Satış vurgusu tamamlanan tur" value={`${salesContentReadyTours}/${allTours.length}`} />
+                    <ReportRow label="Dil içerik ortalaması" value={`%${averageScore(allTours.map(tourLanguageScore))}`} />
+                  </Panel>
+                  <Panel eyebrow="Analitik" title="Dönüşüm Kısayolu">
+                    <ReportRow label="Tur görüntüleme" value={String(tourViews)} />
+                    <ReportRow label="Görüntüleme > talep" value={`%${viewToLeadRate}`} />
+                    <ReportRow label="Görüntüleme > Jolly" value={`%${jollyClickRate}`} />
+                  </Panel>
+                  <Panel eyebrow="Satış" title="Bugünün Öncelikleri">
+                    <ReportRow label="Takip zamanı gelen" value={String(dueFollowUps)} />
+                    <ReportRow label="Yüksek skor lead" value={String(highScoreLeads)} />
+                    <ReportRow label="WhatsApp lead" value={String(whatsappLeads)} />
+                  </Panel>
+                </section>
+              </>
             ) : null}
 
             {section === "leads" || section === "tours" ? (
@@ -1143,10 +1216,11 @@ export default async function AdminPanel({
                     ))}
                   </select>
                 </AdminToolbar>
-                <div className="mb-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mb-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                   <CrmSummary label="Takip bekleyen" value={String(dueFollowUps)} />
                   <CrmSummary label="WhatsApp kanalı" value={String(whatsappLeads)} />
                   <CrmSummary label="UTM talep" value={String(utmLeads)} />
+                  <CrmSummary label="Yüksek skor" value={String(highScoreLeads)} />
                   <CrmSummary label="Satışa dönen" value={String(soldLeads)} />
                 </div>
                 <div className="grid min-w-0 gap-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
@@ -1194,6 +1268,11 @@ export default async function AdminPanel({
                     className="admin-input"
                     name="image"
                     placeholder="Kapak görseli URL"
+                  />
+                  <textarea
+                    className="admin-input min-h-20 resize-y"
+                    name="gallery"
+                    placeholder="Galeri görselleri, her satıra bir URL"
                   />
                   <div className="grid gap-2 sm:grid-cols-2">
                     <input
@@ -1251,6 +1330,30 @@ export default async function AdminPanel({
                     label="Etiketler"
                     name="tags"
                     placeholder="Vizesiz, Yaz, Aile"
+                  />
+                  <LocalizedAdminField
+                    label="Satış rozetleri"
+                    multiline
+                    name="salesBadges"
+                    placeholder="Jolly ödeme yönlendirmesi, Danışman destekli rezervasyon"
+                  />
+                  <LocalizedAdminField
+                    label="Neden bu tur?"
+                    multiline
+                    name="highlights"
+                    placeholder="Hızlı teklif, güçlü rota, kontenjan takibi"
+                  />
+                  <LocalizedAdminField
+                    label="Hareket noktaları"
+                    multiline
+                    name="pickupPoints"
+                    placeholder="İstanbul Avrupa, Kadıköy, Ankara"
+                  />
+                  <LocalizedAdminField
+                    label="İptal ve güvence metni"
+                    multiline
+                    name="cancellationPolicy"
+                    placeholder="İptal, değişiklik ve ödeme koşulları danışman tarafından teyit edilir."
                   />
                   <LocalizedAdminField
                     label="Gün gün program"
@@ -1434,6 +1537,12 @@ export default async function AdminPanel({
                                       name="image"
                                       placeholder="Kapak görseli URL"
                                     />
+                                    <textarea
+                                      className="admin-input min-h-20 resize-y"
+                                      defaultValue={demoTour.gallery.join("\n")}
+                                      name="gallery"
+                                      placeholder="Galeri görselleri, her satıra bir URL"
+                                    />
                                     <div className="grid gap-2 sm:grid-cols-2">
                                       <input
                                         className="admin-input !min-h-9"
@@ -1512,6 +1621,34 @@ export default async function AdminPanel({
                                       name="tags"
                                       placeholder="Etiketler"
                                       values={localizedListText(demoTour.tags)}
+                                    />
+                                    <LocalizedAdminField
+                                      label="Satış rozetleri"
+                                      multiline
+                                      name="salesBadges"
+                                      placeholder="Satış rozetleri"
+                                      values={localizedListText(demoTour.salesBadges)}
+                                    />
+                                    <LocalizedAdminField
+                                      label="Neden bu tur?"
+                                      multiline
+                                      name="highlights"
+                                      placeholder="Öne çıkan satış argümanları"
+                                      values={localizedListText(demoTour.highlights)}
+                                    />
+                                    <LocalizedAdminField
+                                      label="Hareket noktaları"
+                                      multiline
+                                      name="pickupPoints"
+                                      placeholder="Hareket noktaları"
+                                      values={localizedListText(demoTour.pickupPoints)}
+                                    />
+                                    <LocalizedAdminField
+                                      label="İptal ve güvence metni"
+                                      multiline
+                                      name="cancellationPolicy"
+                                      placeholder="İptal ve güvence metni"
+                                      values={demoTour.cancellationPolicy}
                                     />
                                     <LocalizedAdminField
                                       label="Gün gün program"
@@ -2060,6 +2197,15 @@ export default async function AdminPanel({
 	                    ) : (
 	                      <EmptyReportText>Filtrelenen sayfalarda açık SEO kontrolü yok.</EmptyReportText>
 	                    )}
+	                  </ReportBox>
+	                  <ReportBox title="Landing Fırsatları">
+	                    {seoOpportunities.map((item) => (
+	                      <ReportRow
+	                        key={`${item.priority}-${item.path}`}
+	                        label={`${item.title} · ${item.keyword}`}
+	                        value={item.priority}
+	                      />
+	                    ))}
 	                  </ReportBox>
 	                  <div className="grid gap-2">
 	                    {seoPreviewPages.map((page) => (
@@ -2635,11 +2781,19 @@ function PipelineColumn({
                     {lead.tourTitle ?? "Genel talep"}
                   </p>
                 </div>
-                <span className="bg-[#fff0eb] px-2 py-1 text-xs font-black text-[#d94d31]">
-                  {leadScore(lead)}
-                </span>
+                <div className="grid justify-items-end gap-1">
+                  <span className="bg-[#fff0eb] px-2 py-1 text-xs font-black text-[#d94d31]">
+                    {leadScore(lead)}
+                  </span>
+                  <span className={`px-2 py-1 text-[10px] font-black uppercase ${leadTemperatureClass(lead)}`}>
+                    {leadTemperature(lead)}
+                  </span>
+                </div>
               </div>
               <p className="mt-2 break-words text-xs leading-5 text-[#64717d]">{lead.note}</p>
+              <p className="mt-2 border border-[#dde3ea] bg-[#f8fafc] p-2 text-xs font-bold text-[#172026]">
+                Önerilen aksiyon: {leadNextAction(lead)}
+              </p>
               <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
                 <CrmInfo label="Kanal" value={lead.channel || "Telefon"} />
                 <CrmInfo label="Sorumlu" value={lead.owner || "Satış danışmanı"} />
@@ -2738,6 +2892,21 @@ function PipelineColumn({
                       Not Ekle
                     </button>
                   </form>
+                </div>
+              </details>
+              <details className="mt-2 border border-[#dde3ea] bg-[#f8fafc] p-2.5">
+                <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.1em]">
+                  Mesaj şablonları
+                </summary>
+                <div className="mt-2 grid gap-2">
+                  {leadMessageTemplates(lead).map((template) => (
+                    <div className="border border-[#dde3ea] bg-white p-2" key={template.title}>
+                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64717d]">
+                        {template.title}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-[#172026]">{template.text}</p>
+                    </div>
+                  ))}
                 </div>
               </details>
               <details className="mt-2 border border-[#dde3ea] bg-[#f8fafc] p-2.5">
@@ -2863,6 +3032,61 @@ function leadScore(lead: DemoLead) {
   if (lead.preferredDate) score += 7;
   if (lead.nextFollowUpAt) score += 4;
   return Math.min(score, 99);
+}
+
+function leadTemperature(lead: DemoLead) {
+  if (lead.nextFollowUpAt && lead.nextFollowUpAt <= new Date().toISOString().slice(0, 10)) {
+    return "Acil";
+  }
+
+  if (leadScore(lead) >= 82) {
+    return "Sıcak";
+  }
+
+  if (lead.status === "Teklif verildi" || lead.status === "Takipte") {
+    return "Takip";
+  }
+
+  return "Normal";
+}
+
+function leadTemperatureClass(lead: DemoLead) {
+  const temperature = leadTemperature(lead);
+
+  if (temperature === "Acil") return "bg-[#fff0eb] text-[#d94d31]";
+  if (temperature === "Sıcak") return "bg-[#e9f7ef] text-[#14783f]";
+  if (temperature === "Takip") return "bg-[#fff5df] text-[#b87300]";
+  return "bg-[#edf1f5] text-[#64717d]";
+}
+
+function leadNextAction(lead: DemoLead) {
+  if (lead.status === "Yeni") return "İlk arama ve uygun tarih teyidi";
+  if (lead.status === "Ulaşılamadı") return "WhatsApp mesajı + 24 saat sonra tekrar arama";
+  if (lead.status === "Teklif verildi") return "Kontenjan ve fiyat son geçerlilik bilgisi paylaş";
+  if (lead.status === "Takipte") return "Karar tarihi sor ve Jolly yönlendirme adımını anlat";
+  if (lead.status === "Satışa döndü") return "Satış notunu kapat ve kaynak bilgisini rapora işle";
+  if (lead.status === "İptal / olumsuz") return "Olumsuz nedenini not al, yeniden pazarlama iznini kontrol et";
+  return "Görüşme sonucuna göre durumu güncelle";
+}
+
+function leadMessageTemplates(lead: DemoLead) {
+  const tourText = lead.tourTitle ? `${lead.tourTitle} için` : "tur talebiniz için";
+  const dateText = lead.preferredDate ? ` ${lead.preferredDate} dönemi özelinde` : "";
+
+  return [
+    {
+      text: `Merhaba ${lead.name}, book to tour'dan yazıyorum. ${tourText}${dateText} uygun tarih, kontenjan ve ödeme adımlarını birlikte netleştirebiliriz.`,
+      title: "İlk temas",
+    },
+    {
+      text: `Merhaba ${lead.name}, size ilettiğimiz tur teklifi için kontenjanı tekrar kontrol edebilirim. Uygunsa Jolly ödeme yönlendirmesiyle süreci tamamlayabiliriz.`,
+      title: "Teklif takip",
+    },
+    {
+      text: `Merhaba ${lead.name}, ulaşamadığım için buradan bilgi bırakıyorum. Müsait olduğunuzda dönüş yaparsanız tarih ve kişi sayısına göre en uygun alternatifi paylaşayım.`,
+      title: "Ulaşılamadı",
+    },
+  ];
 }
 
 function CrmInfo({ label, value }: { label: string; value: string }) {

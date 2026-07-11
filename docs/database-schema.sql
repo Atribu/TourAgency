@@ -35,6 +35,7 @@ create table if not exists tours (
   summary jsonb not null,
   description jsonb not null default '{}'::jsonb,
   image text not null default '',
+  gallery text[] not null default '{}',
   category_ids text[] not null default '{}',
   campaign_ids text[] not null default '{}',
   destination_ids text[] not null default '{}',
@@ -47,6 +48,10 @@ create table if not exists tours (
   visa jsonb not null default '{}'::jsonb,
   route jsonb not null default '{}'::jsonb,
   tags jsonb not null default '{}'::jsonb,
+  sales_badges jsonb not null default '{}'::jsonb,
+  highlights jsonb not null default '{}'::jsonb,
+  pickup_points jsonb not null default '{}'::jsonb,
+  cancellation_policy jsonb not null default '{}'::jsonb,
   featured boolean not null default false,
   active boolean not null default true,
   jolly_url text not null default '',
@@ -86,6 +91,12 @@ create table if not exists leads (
   kvkk boolean not null default false,
   marketing boolean not null default false,
   jolly_notice boolean not null default false,
+  channel text not null default 'Form',
+  owner text not null default 'Satış danışmanı',
+  last_contact_at text not null default '',
+  next_follow_up_at text not null default '',
+  internal_note text not null default '',
+  timeline jsonb not null default '[]'::jsonb,
   status text not null default 'Yeni',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -131,5 +142,7 @@ create table if not exists tracking_events (
 create index if not exists idx_tours_active on tours(active);
 create index if not exists idx_tours_featured on tours(featured);
 create index if not exists idx_leads_status on leads(status);
+create index if not exists idx_leads_next_follow_up_at on leads(next_follow_up_at);
+create index if not exists idx_leads_channel on leads(channel);
 create index if not exists idx_leads_created_at on leads(created_at desc);
 create index if not exists idx_tracking_events_name on tracking_events(name);

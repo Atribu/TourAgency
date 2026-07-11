@@ -18,6 +18,7 @@ export type Tour = {
   summary: Localized;
   description: Localized;
   image: string;
+  gallery?: string[];
   categoryIds: string[];
   campaignIds: string[];
   destinationIds: string[];
@@ -30,6 +31,10 @@ export type Tour = {
   visa: Localized;
   route: Localized;
   tags: Localized<string[]>;
+  salesBadges?: Localized<string[]>;
+  highlights?: Localized<string[]>;
+  pickupPoints?: Localized<string[]>;
+  cancellationPolicy?: Localized;
   featured: boolean;
   jollyUrl: string;
   itinerary: Localized<Array<{ day: string; title: string; text: string }>>;

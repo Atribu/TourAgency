@@ -61,6 +61,7 @@ export type DemoTour = {
   summary: Record<Locale, string>;
   description: Record<Locale, string>;
   image: string;
+  gallery: string[];
   categoryIds: string[];
   campaignIds: string[];
   destinationIds: string[];
@@ -73,6 +74,10 @@ export type DemoTour = {
   visa: Record<Locale, string>;
   route: Record<Locale, string>;
   tags: Record<Locale, string[]>;
+  salesBadges: Record<Locale, string[]>;
+  highlights: Record<Locale, string[]>;
+  pickupPoints: Record<Locale, string[]>;
+  cancellationPolicy: Record<Locale, string>;
   itinerary: Record<Locale, DemoItineraryItem[]>;
   included: Record<Locale, string[]>;
   excluded: Record<Locale, string[]>;
